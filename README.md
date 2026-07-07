@@ -15,7 +15,7 @@ sequenceDiagram
     participant Peer as Peer Node (Offline)
     participant Bridge as Bridge Node (Internet Enabled)
     participant Backend as Spring Boot Backend
-    database DB as H2 Database
+    participant DB as H2 Database
 
     Note over Sender: 1. Encrypts PaymentInstruction<br/>(RSA-OAEP + AES-256-GCM)
     Sender->>Peer: Broadcast over Mesh (MeshPacket)
