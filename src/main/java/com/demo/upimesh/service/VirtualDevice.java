@@ -17,14 +17,34 @@ public class VirtualDevice {
     private final String deviceId;
     private final boolean hasInternet;
     private final Map<String, MeshPacket> heldPackets = new ConcurrentHashMap<>();
+    private double x;
+    private double y;
+    private double range = 180.0; // Default range in pixels
 
     public VirtualDevice(String deviceId, boolean hasInternet) {
         this.deviceId = deviceId;
         this.hasInternet = hasInternet;
     }
 
+    public VirtualDevice(String deviceId, boolean hasInternet, double x, double y, double range) {
+        this.deviceId = deviceId;
+        this.hasInternet = hasInternet;
+        this.x = x;
+        this.y = y;
+        this.range = range;
+    }
+
     public String getDeviceId() { return deviceId; }
     public boolean hasInternet() { return hasInternet; }
+
+    public double getX() { return x; }
+    public void setX(double x) { this.x = x; }
+
+    public double getY() { return y; }
+    public void setY(double y) { this.y = y; }
+
+    public double getRange() { return range; }
+    public void setRange(double range) { this.range = range; }
 
     public void hold(MeshPacket packet) {
         heldPackets.putIfAbsent(packet.getPacketId(), packet);

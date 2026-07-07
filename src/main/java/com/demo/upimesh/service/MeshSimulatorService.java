@@ -32,11 +32,11 @@ public class MeshSimulatorService {
     }
 
     private void seedDefaultDevices() {
-        devices.put("phone-alice",   new VirtualDevice("phone-alice",   false));
-        devices.put("phone-stranger1", new VirtualDevice("phone-stranger1", false));
-        devices.put("phone-stranger2", new VirtualDevice("phone-stranger2", false));
-        devices.put("phone-stranger3", new VirtualDevice("phone-stranger3", false));
-        devices.put("phone-bridge",  new VirtualDevice("phone-bridge",  true));
+        devices.put("phone-alice",     new VirtualDevice("phone-alice",     false, 100, 200, 180));
+        devices.put("phone-stranger1", new VirtualDevice("phone-stranger1", false, 240, 150, 180));
+        devices.put("phone-stranger2", new VirtualDevice("phone-stranger2", false, 380, 250, 180));
+        devices.put("phone-stranger3", new VirtualDevice("phone-stranger3", false, 520, 150, 180));
+        devices.put("phone-bridge",    new VirtualDevice("phone-bridge",    true,  660, 200, 180));
     }
 
     public Collection<VirtualDevice> getDevices() {
@@ -84,6 +84,13 @@ public class MeshSimulatorService {
                 for (VirtualDevice dst : deviceList) {
                     if (dst == src) continue;
                     if (dst.holds(pkt.getPacketId())) continue;
+
+                    // Proximity check:
+                    double dx = src.getX() - dst.getX();
+                    double dy = src.getY() - dst.getY();
+                    double dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist > src.getRange()) continue; // out of transmission range!
+
                     MeshPacket copy = new MeshPacket();
                     copy.setPacketId(pkt.getPacketId());
                     copy.setTtl(pkt.getTtl() - 1);
