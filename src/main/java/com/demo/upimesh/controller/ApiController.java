@@ -86,13 +86,36 @@ public class ApiController {
                     "packetCount", d.packetCount(),
                     "packetIds", d.getHeldPackets().stream()
                             .map(p -> p.getPacketId().substring(0, 8))
-                            .toList()
+                            .toList(),
+                    "x", d.getX(),
+                    "y", d.getY(),
+                    "range", d.getRange()
             ));
         }
         return Map.of(
                 "devices", deviceData,
                 "idempotencyCacheSize", idempotency.size()
         );
+    }
+
+    @PostMapping("/mesh/update-positions")
+    public Map<String, Object> updatePositions(@RequestBody List<UpdatePositionRequest> reqs) {
+        for (UpdatePositionRequest req : reqs) {
+            VirtualDevice d = mesh.getDevice(req.deviceId);
+            if (d != null) {
+                if (req.x != null) d.setX(req.x);
+                if (req.y != null) d.setY(req.y);
+                if (req.range != null) d.setRange(req.range);
+            }
+        }
+        return Map.of("status", "success");
+    }
+
+    public static class UpdatePositionRequest {
+        public String deviceId;
+        public Double x;
+        public Double y;
+        public Double range;
     }
 
     @PostMapping("/mesh/gossip")
