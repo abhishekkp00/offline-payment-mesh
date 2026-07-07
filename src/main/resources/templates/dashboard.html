@@ -2,242 +2,622 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>UPI Offline Mesh — Demo</title>
+    <title>UPI Offline Mesh — Interactive Simulator</title>
     <style>
         * { box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            margin: 0; padding: 24px; background: #0d1117; color: #e6edf3;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0; padding: 24px; background: #0b0f19; color: #f0f6fc;
         }
-        h1 { margin-top: 0; color: #f0f6fc; }
-        h2 { color: #58a6ff; border-bottom: 1px solid #30363d; padding-bottom: 4px; margin-top: 32px; }
+        h1 { margin-top: 0; color: #ffffff; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        h2 { color: #58a6ff; border-bottom: 1px solid #21262d; padding-bottom: 6px; margin-top: 16px; margin-bottom: 16px; font-weight: 600; font-size: 1.25rem; }
         .container { max-width: 1200px; margin: 0 auto; }
-        .grid { display: grid; gap: 16px; }
+        .grid { display: grid; gap: 20px; }
         .grid-2 { grid-template-columns: 1fr 1fr; }
         .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        
         .card {
-            background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px;
+            background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
         }
-        .device {
-            border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 8px;
-            background: #0d1117;
-        }
-        .device.bridge { border-color: #2ea043; background: #052e16; }
-        .device.offline { opacity: 0.85; }
         .badge {
-            display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px;
-            font-weight: 600; margin-left: 8px;
+            display: inline-block; font-size: 11px; padding: 3px 10px; border-radius: 12px;
+            font-weight: 600; margin-left: 8px; text-transform: uppercase;
         }
-        .badge-online { background: #2ea043; color: white; }
-        .badge-offline { background: #6e7681; color: white; }
-        .packet-id {
-            font-family: 'Consolas', 'Monaco', monospace; font-size: 11px;
-            background: #21262d; padding: 2px 6px; border-radius: 3px; margin: 2px;
-            display: inline-block;
-        }
+        .badge-online { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .badge-offline { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.4); }
+        
         button {
-            background: #238636; color: white; border: none; padding: 8px 16px;
-            border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500;
-            margin: 4px;
+            background: #2563eb; color: white; border: none; padding: 10px 20px;
+            border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600;
+            margin: 4px; transition: all 0.2s ease;
         }
-        button:hover { background: #2ea043; }
-        button.danger { background: #da3633; }
-        button.danger:hover { background: #f85149; }
-        button.secondary { background: #1f6feb; }
-        button.secondary:hover { background: #388bfd; }
+        button:hover { background: #3b82f6; transform: translateY(-1px); }
+        button.success { background: #059669; }
+        button.success:hover { background: #10b981; }
+        button.danger { background: #dc2626; }
+        button.danger:hover { background: #ef4444; }
+        button.secondary { background: #4b5563; }
+        button.secondary:hover { background: #6b7280; }
+        
         input, select {
-            background: #0d1117; color: #e6edf3; border: 1px solid #30363d;
-            border-radius: 4px; padding: 6px 10px; font-size: 14px; margin: 4px;
+            background: #1f2937; color: #f3f4f6; border: 1px solid #374151;
+            border-radius: 6px; padding: 8px 12px; font-size: 14px; margin: 4px;
+            outline: none;
         }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { text-align: left; padding: 8px; border-bottom: 1px solid #30363d; }
-        th { color: #8b949e; font-weight: 600; font-size: 12px; text-transform: uppercase; }
-        .status-SETTLED { color: #56d364; font-weight: 600; }
-        .status-REJECTED { color: #f85149; font-weight: 600; }
-        .status-DUPLICATE_DROPPED { color: #d29922; font-weight: 600; }
-        .status-INVALID { color: #f85149; font-weight: 600; }
+        input:focus, select:focus { border-color: #3b82f6; }
+        
+        table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+        th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #1f2937; }
+        th { color: #9ca3af; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+        
+        .status-SETTLED { color: #34d399; font-weight: 700; background: rgba(52, 211, 153, 0.1); padding: 2px 8px; border-radius: 4px; }
+        .status-REJECTED { color: #f87171; font-weight: 700; background: rgba(248, 113, 113, 0.1); padding: 2px 8px; border-radius: 4px; }
+        .status-DUPLICATE_DROPPED { color: #fbbf24; font-weight: 700; background: rgba(251, 191, 36, 0.1); padding: 2px 8px; border-radius: 4px; }
+        .status-INVALID { color: #ef4444; font-weight: 700; background: rgba(239, 68, 68, 0.1); padding: 2px 8px; border-radius: 4px; }
+        
         #log {
-            background: #010409; color: #7ee787; padding: 12px; border-radius: 6px;
-            font-family: 'Consolas', 'Monaco', monospace; font-size: 12px;
+            background: #030712; color: #10b981; padding: 16px; border-radius: 8px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; font-size: 12px;
             max-height: 220px; overflow-y: auto; white-space: pre-wrap;
-            border: 1px solid #30363d;
+            border: 1px solid #1f2937; line-height: 1.5;
         }
-        .controls { background: #161b22; padding: 16px; border-radius: 8px;
-                    border: 1px solid #30363d; margin-bottom: 16px; }
+        .controls { 
+            background: #111827; padding: 20px; border-radius: 12px;
+            border: 1px solid #1f2937; margin-bottom: 20px; 
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
         .step-num {
-            display: inline-block; background: #58a6ff; color: white;
+            display: inline-block; background: #2563eb; color: white;
             border-radius: 50%; width: 24px; height: 24px; text-align: center;
-            line-height: 24px; font-weight: 600; margin-right: 8px;
+            line-height: 24px; font-weight: 700; margin-right: 8px;
         }
-        .balance { font-family: 'Consolas', monospace; color: #56d364; font-weight: 600; }
-        .small { font-size: 12px; color: #8b949e; }
+        .balance { font-family: 'Consolas', monospace; color: #10b981; font-weight: 700; }
+        .small { font-size: 13px; color: #9ca3af; }
+        .canvas-container {
+            position: relative; background: #030712; border-radius: 8px; 
+            border: 1px solid #1f2937; overflow: hidden; height: 380px; margin-bottom: 12px;
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>📡 UPI Offline Mesh — Live Demo</h1>
-    <p class="small">
-        Send money in a basement with zero internet. Encrypted packets gossip from phone to phone
-        until one with 4G reaches the backend.
+    <h1>📡 UPI Offline Mesh — Interactive Simulator</h1>
+    <p class="small" style="margin-top: -8px; margin-bottom: 20px;">
+        A visual simulation of decentralized, deferred-settlement offline UPI transaction routing. 
+        Packets are cryptographically protected and hop peer-to-peer until they reach internet connectivity.
     </p>
 
+    <!-- Controls panel -->
     <div class="controls">
-        <h3 style="margin-top:0">🎬 Demo Flow</h3>
+        <h3 style="margin-top:0; color: #e5e7eb;">🎬 Simulation Controller</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 24px;">
+            <div style="flex: 1; min-width: 320px;">
+                <span class="step-num">1</span><strong>Inject Transaction</strong>
+                <div style="margin-top: 8px; display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center;">
+                    <label class="small">From:</label>
+                    <select id="senderVpa">
+                        <option>alice@demo</option>
+                        <option>bob@demo</option>
+                        <option>carol@demo</option>
+                    </select>
+                    
+                    <label class="small">To:</label>
+                    <select id="receiverVpa">
+                        <option>bob@demo</option>
+                        <option>carol@demo</option>
+                        <option>alice@demo</option>
+                        <option>dave@demo</option>
+                    </select>
 
-        <div>
-            <span class="step-num">1</span><strong>Compose payment</strong> (simulates sender phone)
-            <br>
-            <select id="senderVpa">
-                <option>alice@demo</option>
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-            </select>
-            →
-            <select id="receiverVpa">
-                <option>bob@demo</option>
-                <option>carol@demo</option>
-                <option>alice@demo</option>
-                <option>dave@demo</option>
-            </select>
-            ₹<input type="number" id="amount" value="500" style="width: 100px">
-            PIN <input type="text" id="pin" value="1234" style="width: 80px" maxlength="4">
-            <button onclick="sendPacket()">📤 Inject into Mesh</button>
-        </div>
+                    <label class="small">Amount:</label>
+                    <input type="number" id="amount" value="500" style="width: 120px">
+                    
+                    <label class="small">PIN:</label>
+                    <input type="text" id="pin" value="1234" style="width: 80px" maxlength="4">
 
-        <div style="margin-top: 16px">
-            <span class="step-num">2</span><strong>Gossip</strong> — packets hop device-to-device
-            <button class="secondary" onclick="gossip()">🔄 Run Gossip Round</button>
-        </div>
+                    <label class="small">Inject At:</label>
+                    <select id="injectDevice"></select>
+                </div>
+                <button class="success" onclick="sendPacket()" style="margin-top: 12px; width: 100%;">📤 Inject into Mesh</button>
+            </div>
 
-        <div style="margin-top: 16px">
-            <span class="step-num">3</span><strong>Bridge node walks outside, hits 4G</strong>
-            <button class="secondary" onclick="flushBridges()">📡 Bridges Upload to Backend</button>
-            <span class="small">(parallel — exercises idempotency)</span>
-        </div>
+            <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <span class="step-num">2</span><strong>Mesh Gossip</strong>
+                    <p class="small" style="margin-top: 4px; margin-bottom: 8px;">
+                        Broadcasts packets between all devices within physical range.
+                    </p>
+                    <button class="secondary" onclick="gossip()" style="width: 100%;">🔄 Run Gossip Round</button>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <span class="step-num">3</span><strong>Bridge Uplink</strong>
+                    <p class="small" style="margin-top: 4px; margin-bottom: 8px;">
+                        Uploads packets from bridges in range of the Internet Gateway.
+                    </p>
+                    <button class="secondary" onclick="flushBridges()" style="width: 100%;">📡 Bridges Upload to Backend</button>
+                </div>
+            </div>
 
-        <div style="margin-top: 16px">
-            <button class="danger" onclick="resetMesh()">🗑 Reset Mesh + Cache</button>
+            <div style="flex: 0.5; min-width: 180px; display: flex; flex-direction: column; justify-content: flex-end;">
+                <button class="danger" onclick="resetMesh()" style="width: 100%; padding: 12px;">🗑 Reset Simulation</button>
+            </div>
         </div>
     </div>
 
+    <!-- Interactive Canvas Visualizer -->
+    <div class="card" style="margin-bottom: 20px;">
+        <h2>📱 Live Network Topology Map</h2>
+        <p class="small" style="margin-top:-8px; margin-bottom:12px;">
+            Drag devices around. Blue dashed circles indicate Bluetooth range. Green lines indicate active P2P links. 
+            The bridge uploads when it is near the <strong>Internet Gateway</strong> (represented by the tower).
+        </p>
+        <div class="canvas-container">
+            <canvas id="meshCanvas" width="1160" height="380"></canvas>
+        </div>
+    </div>
+
+    <!-- Balances and Transactions -->
     <div class="grid grid-2">
         <div class="card">
-            <h2>📱 Mesh Devices</h2>
-            <div id="devices"></div>
+            <h2>🏦 Ledger Account Balances</h2>
+            <table id="accounts-table">
+                <thead><tr><th>VPA</th><th>Account Holder</th><th>Balance</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <p class="small" id="cacheInfo" style="margin-top: 12px; font-weight: 600;"></p>
         </div>
 
         <div class="card">
-            <h2>🏦 Account Balances</h2>
-            <table id="accounts-table">
-                <thead><tr><th>VPA</th><th>Holder</th><th>Balance</th></tr></thead>
+            <h2>🪵 Transaction Ledger (Settles)</h2>
+            <table id="tx-table">
+                <thead><tr>
+                    <th>ID</th><th>From</th><th>To</th><th>Amount</th><th>Status</th><th>Uplink</th>
+                </tr></thead>
                 <tbody></tbody>
             </table>
-            <p class="small" id="cacheInfo"></p>
         </div>
     </div>
 
-    <div class="card" style="margin-top: 16px">
-        <h2>📜 Transaction Ledger</h2>
-        <table id="tx-table">
-            <thead><tr>
-                <th>ID</th><th>From</th><th>To</th><th>Amount</th>
-                <th>Status</th><th>Bridge</th><th>Hops</th><th>Settled</th>
-            </tr></thead>
-            <tbody></tbody>
-        </table>
-    </div>
-
-    <div class="card" style="margin-top: 16px">
-        <h2>🪵 Activity Log</h2>
+    <!-- Log Console -->
+    <div class="card" style="margin-top: 20px;">
+        <h2>💻 Simulation Debug Console</h2>
         <div id="log"></div>
     </div>
 </div>
 
 <script>
+const canvas = document.getElementById('meshCanvas');
+const ctx = canvas.getContext('2d');
+const deviceRadius = 24;
+
+let devices = [];
+let draggedDevice = null;
+let dragOffset = { x: 0, y: 0 };
+let activeParticles = [];
+
+// Internet Gateway position
+const gateway = { x: 1080, y: 190, range: 250 };
+
 function log(msg) {
     const el = document.getElementById('log');
     el.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg + '\n' + el.textContent;
 }
 
-async function refresh() {
-    // Mesh state
+// Mouse Event Listeners for dragging
+canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    for (let d of devices) {
+        const dx = mx - d.x;
+        const dy = my - d.y;
+        if (dx * dx + dy * dy < deviceRadius * deviceRadius) {
+            draggedDevice = d;
+            dragOffset = { x: dx, y: dy };
+            canvas.style.cursor = 'grabbing';
+            break;
+        }
+    }
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // Update cursor style on hover
+    let hover = false;
+    for (let d of devices) {
+        const dx = mx - d.x;
+        const dy = my - d.y;
+        if (dx * dx + dy * dy < deviceRadius * deviceRadius) {
+            hover = true;
+            break;
+        }
+    }
+    canvas.style.cursor = draggedDevice ? 'grabbing' : (hover ? 'grab' : 'default');
+
+    if (draggedDevice) {
+        draggedDevice.x = Math.max(deviceRadius, Math.min(canvas.width - deviceRadius, mx - dragOffset.x));
+        draggedDevice.y = Math.max(deviceRadius, Math.min(canvas.height - deviceRadius, my - dragOffset.y));
+    }
+});
+
+canvas.addEventListener('mouseup', async () => {
+    if (draggedDevice) {
+        canvas.style.cursor = 'grab';
+        // Persist coordinates on backend
+        await fetch('/api/mesh/update-positions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([{
+                deviceId: draggedDevice.deviceId,
+                x: draggedDevice.x,
+                y: draggedDevice.y,
+                range: draggedDevice.range
+            }])
+        });
+        draggedDevice = null;
+        refresh(false); // Silent refresh
+    }
+});
+
+canvas.addEventListener('mouseleave', () => {
+    if (draggedDevice) {
+        draggedDevice = null;
+        canvas.style.cursor = 'default';
+    }
+});
+
+// Particle class for packet hop animations
+class Particle {
+    constructor(startX, startY, endX, endY, color = '#fbbf24') {
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
+        this.x = startX;
+        this.y = startY;
+        this.progress = 0;
+        this.speed = 0.015;
+        this.color = color;
+    }
+    update() {
+        this.progress += this.speed;
+        this.x = this.startX + (this.endX - this.startX) * this.progress;
+        this.y = this.startY + (this.endY - this.startY) * this.progress;
+        return this.progress >= 1.0;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.color;
+        ctx.fill();
+        ctx.shadowBlur = 0; // reset
+    }
+}
+
+// Visual broadcast rings on packet injection or upload
+class SignalRing {
+    constructor(x, y, maxRadius, color = 'rgba(59, 130, 246, 0.4)') {
+        this.x = x;
+        this.y = y;
+        this.radius = 0;
+        this.maxRadius = maxRadius;
+        this.color = color;
+        this.speed = 4;
+    }
+    update() {
+        this.radius += this.speed;
+        return this.radius >= this.maxRadius;
+    }
+    draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+}
+
+let activeRings = [];
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // 1. Draw Internet Gateway
+    ctx.beginPath();
+    ctx.arc(gateway.x, gateway.y, 35, 0, Math.PI * 2);
+    ctx.fillStyle = '#1e3a8a';
+    ctx.strokeStyle = '#3b82f6';
+    ctx.lineWidth = 3;
+    ctx.fill();
+    ctx.stroke();
+    
+    // Draw tower icon inside
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('4G TOWER', gateway.x, gateway.y - 4);
+    ctx.fillText('GATEWAY', gateway.x, gateway.y + 12);
+    
+    // Draw Gateway Range Circle
+    ctx.beginPath();
+    ctx.arc(gateway.x, gateway.y, gateway.range, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(59, 130, 246, 0.08)';
+    ctx.fillStyle = 'rgba(59, 130, 246, 0.01)';
+    ctx.fill();
+    ctx.stroke();
+
+    // 2. Draw connections/mesh links
+    for (let i = 0; i < devices.length; i++) {
+        for (let j = i + 1; j < devices.length; j++) {
+            const d1 = devices[i];
+            const d2 = devices[j];
+            const dx = d1.x - d2.x;
+            const dy = d1.y - d2.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            // If they are within range of each other
+            if (dist <= d1.range && dist <= d2.range) {
+                ctx.beginPath();
+                ctx.moveTo(d1.x, d1.y);
+                ctx.lineTo(d2.x, d2.y);
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)'; // semi-transparent green
+                ctx.lineWidth = 3;
+                ctx.setLineDash([]);
+                ctx.stroke();
+            }
+        }
+    }
+
+    // 3. Draw device ranges and connection to Gateway
+    for (let d of devices) {
+        // Draw Bluetooth range
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.range, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(59, 130, 246, 0.15)';
+        ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]); // reset
+
+        // Draw line to Gateway if it has internet
+        if (d.hasInternet) {
+            // Check physical distance to Gateway
+            const gdx = d.x - gateway.x;
+            const gdy = d.y - gateway.y;
+            const gdist = Math.sqrt(gdx * gdx + gdy * gdy);
+            const inGatewayRange = gdist <= gateway.range;
+            
+            ctx.beginPath();
+            ctx.moveTo(d.x, d.y);
+            ctx.lineTo(gateway.x, gateway.y);
+            ctx.strokeStyle = inGatewayRange ? '#3b82f6' : 'rgba(239, 68, 68, 0.3)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]); // reset
+            
+            // Draw visual status label near connection line
+            ctx.fillStyle = inGatewayRange ? '#60a5fa' : '#f87171';
+            ctx.font = '10px monospace';
+            ctx.fillText(inGatewayRange ? 'CONNECTED' : 'OUT OF RANGE', (d.x + gateway.x)/2, (d.y + gateway.y)/2 - 6);
+        }
+    }
+
+    // 4. Draw animation elements (rings and particles)
+    activeRings = activeRings.filter(r => {
+        const done = r.update();
+        r.draw();
+        return !done;
+    });
+
+    activeParticles = activeParticles.filter(p => {
+        const done = p.update();
+        p.draw();
+        return !done;
+    });
+
+    // 5. Draw active devices
+    for (let d of devices) {
+        // Circle body
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, deviceRadius, 0, Math.PI * 2);
+        ctx.fillStyle = d.hasInternet ? '#064e3b' : '#1f2937';
+        ctx.strokeStyle = d.hasInternet ? '#10b981' : '#4b5563';
+        ctx.lineWidth = 3;
+        ctx.fill();
+        ctx.stroke();
+
+        // Node ID Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.deviceId.replace('phone-', ''), d.x, d.y + 4);
+
+        // Internet connection badge icon
+        if (d.hasInternet) {
+            ctx.beginPath();
+            ctx.arc(d.x - 14, d.y - 14, 7, 0, Math.PI * 2);
+            ctx.fillStyle = '#10b981';
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '8px sans-serif';
+            ctx.fillText('4G', d.x - 14, d.y - 11);
+        }
+
+        // Packet count badge
+        if (d.packetCount > 0) {
+            ctx.beginPath();
+            ctx.arc(d.x + 16, d.y - 16, 10, 0, Math.PI * 2);
+            ctx.fillStyle = '#ef4444';
+            ctx.fill();
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 10px sans-serif';
+            ctx.fillText(d.packetCount, d.x + 16, d.y - 13);
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+// Trigger mesh gossip animation client-side
+function triggerGossipAnimation() {
+    for (let i = 0; i < devices.length; i++) {
+        const d1 = devices[i];
+        if (d1.packetCount > 0) {
+            // Expand signal ring
+            activeRings.push(new SignalRing(d1.x, d1.y, d1.range, 'rgba(16, 185, 129, 0.3)'));
+            // Send particles to all connected devices in range
+            for (let j = 0; j < devices.length; j++) {
+                if (i === j) continue;
+                const d2 = devices[j];
+                const dx = d1.x - d2.x;
+                const dy = d1.y - d2.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist <= d1.range) {
+                    activeParticles.push(new Particle(d1.x, d1.y, d2.x, d2.y, '#f59e0b'));
+                }
+            }
+        }
+    }
+}
+
+async function refresh(updateLocalCoords = true) {
     const m = await fetch('/api/mesh/state').then(r => r.json());
-    const devicesDiv = document.getElementById('devices');
-    devicesDiv.innerHTML = m.devices.map(d => `
-        <div class="device ${d.hasInternet ? 'bridge' : 'offline'}">
-            <strong>${d.deviceId}</strong>
-            <span class="badge ${d.hasInternet ? 'badge-online' : 'badge-offline'}">
-                ${d.hasInternet ? '🌐 4G' : '🚫 OFFLINE'}
-            </span>
-            <span class="small">holding ${d.packetCount} packet(s)</span>
-            <div>${d.packetIds.map(id => `<span class="packet-id">${id}</span>`).join('')}</div>
-        </div>
-    `).join('');
+    
+    // Synchronize device locations from server if needed
+    if (updateLocalCoords) {
+        devices = m.devices;
+    } else {
+        // Just synchronize packet counts and states, retaining drag positions
+        m.devices.forEach(remoteD => {
+            const localD = devices.find(ld => ld.deviceId === remoteD.deviceId);
+            if (localD) {
+                localD.packetCount = remoteD.packetCount;
+                localD.packetIds = remoteD.packetIds;
+                localD.hasInternet = remoteD.hasInternet;
+            }
+        });
+    }
+
+    // Refresh Inject At dropdown
+    const select = document.getElementById('injectDevice');
+    const prevVal = select.value;
+    select.innerHTML = devices.map(d => `<option>${d.deviceId}</option>`).join('');
+    if (prevVal && devices.some(d => d.deviceId === prevVal)) {
+        select.value = prevVal;
+    }
+
     document.getElementById('cacheInfo').textContent =
-        `Idempotency cache size: ${m.idempotencyCacheSize}`;
+        `Deduplication (Idempotency) Cache Size: ${m.idempotencyCacheSize} entry/entries`;
 
     // Accounts
     const accs = await fetch('/api/accounts').then(r => r.json());
     document.querySelector('#accounts-table tbody').innerHTML = accs.map(a => `
-        <tr><td>${a.vpa}</td><td>${a.holderName}</td>
-            <td class="balance">₹${parseFloat(a.balance).toFixed(2)}</td></tr>
+        <tr>
+            <td>${a.vpa}</td>
+            <td>${a.holderName}</td>
+            <td class="balance">₹${parseFloat(a.balance).toFixed(2)}</td>
+        </tr>
     `).join('');
 
     // Transactions
     const txs = await fetch('/api/transactions').then(r => r.json());
     document.querySelector('#tx-table tbody').innerHTML = txs.map(t => `
         <tr>
-            <td>${t.id}</td><td>${t.senderVpa}</td><td>${t.receiverVpa}</td>
+            <td>${t.id}</td>
+            <td>${t.senderVpa}</td>
+            <td>${t.receiverVpa}</td>
             <td class="balance">₹${parseFloat(t.amount).toFixed(2)}</td>
-            <td class="status-${t.status}">${t.status}</td>
-            <td>${t.bridgeNodeId}</td><td>${t.hopCount}</td>
-            <td class="small">${new Date(t.settledAt).toLocaleTimeString()}</td>
+            <td><span class="status-${t.status}">${t.status}</span></td>
+            <td class="small">${t.bridgeNodeId} (hops: ${t.hopCount})</td>
         </tr>
     `).join('');
 }
 
 async function sendPacket() {
+    const injectDevice = document.getElementById('injectDevice').value;
     const body = {
         senderVpa: document.getElementById('senderVpa').value,
         receiverVpa: document.getElementById('receiverVpa').value,
         amount: parseFloat(document.getElementById('amount').value),
         pin: document.getElementById('pin').value,
         ttl: 5,
-        startDevice: 'phone-alice'
+        startDevice: injectDevice
     };
+    
     const r = await fetch('/api/demo/send', {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
     }).then(r => r.json());
-    log(`📤 Packet ${r.packetId.substring(0,8)} encrypted & injected at ${r.injectedAt} (TTL ${r.ttl})`);
-    log(`   ciphertext (truncated): ${r.ciphertextPreview}`);
-    refresh();
+    
+    log(`📤 Injected packet ${r.packetId.substring(0,8)}... into ${r.injectedAt} (TTL: ${r.ttl})`);
+    
+    // Find device to trigger a visual signal ring
+    const d = devices.find(ld => ld.deviceId === r.injectedAt);
+    if (d) {
+        activeRings.push(new SignalRing(d.x, d.y, 80, 'rgba(239, 68, 68, 0.6)'));
+    }
+    
+    await refresh(false);
 }
 
 async function gossip() {
-    const r = await fetch('/api/mesh/gossip', {method: 'POST'}).then(r => r.json());
-    log(`🔄 Gossip: ${r.transfers} transfer(s) — ${JSON.stringify(r.deviceCounts)}`);
-    refresh();
+    triggerGossipAnimation();
+    const r = await fetch('/api/mesh/gossip', { method: 'POST' }).then(r => r.json());
+    log(`🔄 Gossip tick complete: ${r.transfers} P2P packet transfer(s) occurred.`);
+    await refresh(false);
 }
 
 async function flushBridges() {
-    const r = await fetch('/api/mesh/flush', {method: 'POST'}).then(r => r.json());
-    log(`📡 ${r.uploadsAttempted} bridge upload(s):`);
+    // Check if any bridge is physically close to Gateway
+    let bridgeUploaded = false;
+    for (let d of devices) {
+        if (d.hasInternet && d.packetCount > 0) {
+            const dx = d.x - gateway.x;
+            const dy = d.y - gateway.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist <= gateway.range) {
+                bridgeUploaded = true;
+                // Animate packet particles uploading to gateway
+                activeParticles.push(new Particle(d.x, d.y, gateway.x, gateway.y, '#3b82f6'));
+                activeRings.push(new SignalRing(gateway.x, gateway.y, 120, 'rgba(59, 130, 246, 0.5)'));
+            }
+        }
+    }
+
+    const r = await fetch('/api/mesh/flush', { method: 'POST' }).then(r => r.json());
+    log(`📡 Uplink attempt: ${r.uploadsAttempted} packet upload(s) requested.`);
     r.results.forEach(res => {
-        log(`   ${res.bridgeNode} packet ${res.packetId} → ${res.outcome}` +
-            (res.reason ? ` (${res.reason})` : ''));
+        log(`   - [${res.bridgeNode}] Uploaded packet ${res.packetId} → Server Result: ${res.outcome}` +
+            (res.reason ? ` (Reason: ${res.reason})` : ''));
     });
-    refresh();
+    
+    await refresh(false);
 }
 
 async function resetMesh() {
-    await fetch('/api/mesh/reset', {method: 'POST'});
-    log('🗑 mesh + idempotency cache cleared');
-    refresh();
+    await fetch('/api/mesh/reset', { method: 'POST' });
+    log('🗑 Simulation reset: Mesh nodes emptied & server idempotency cache cleared.');
+    activeParticles = [];
+    activeRings = [];
+    await refresh(true);
 }
 
-refresh();
-setInterval(refresh, 3000);
+// Initial Bootstrap
+refresh(true).then(() => {
+    requestAnimationFrame(animate);
+});
+
+// Periodic state updates (silent)
+setInterval(() => refresh(false), 3000);
 </script>
 </body>
 </html>
