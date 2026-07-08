@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>UPI Offline Mesh Network Simulator: Specification & Implementation Analysis</title>
+    <style>
+        body {
+            font-family: "Liberation Sans", "Arial", sans-serif;
+            color: #1f2937;
+            background: #ffffff;
+            line-height: 1.6;
+            margin: 40px;
+            font-size: 11pt;
+        }
+
+        h1, h2, h3, h4 {
+            color: #111827;
+            font-weight: bold;
+            page-break-after: avoid;
+        }
+
+        h1 {
+            font-size: 24pt;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            font-size: 16pt;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 6px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            font-size: 12pt;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        p, li {
+            margin-bottom: 12px;
+            text-align: justify;
+        }
+
+        ul, ol {
+            margin-top: 5px;
+            margin-bottom: 15px;
+            padding-left: 24px;
+        }
+
+        code {
+            font-family: "Liberation Mono", "Courier New", monospace;
+            background: #f3f4f6;
+            padding: 2px 5px;
+            font-size: 9.5pt;
+            border-radius: 4px;
+        }
+
+        pre {
+            font-family: "Liberation Mono", "Courier New", monospace;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            font-size: 9pt;
+            border-radius: 6px;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            margin-bottom: 25px;
+            page-break-inside: avoid;
+        }
+
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 8px 12px;
+            font-size: 10pt;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f9fafb;
+            font-weight: bold;
+        }
+
+        .cover-page {
+            height: 100%;
+            page-break-after: always;
+            padding-top: 150px;
+            text-align: center;
+        }
+
+        .cover-title {
+            font-size: 28pt;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #1e3a8a;
+            line-height: 1.2;
+        }
+
+        .cover-subtitle {
+            font-size: 14pt;
+            color: #4b5563;
+            margin-bottom: 80px;
+        }
+
+        .cover-metadata {
+            margin-top: 150px;
+            font-size: 11pt;
+            color: #6b7280;
+            line-height: 1.8;
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        .note-box {
+            background: #eff6ff;
+            border-left: 4px solid #2563eb;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 10pt;
+        }
+        
+        .warning-box {
+            background: #fffbeb;
+            border-left: 4px solid #d97706;
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            font-size: 10pt;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Cover Page -->
+    <div class="cover-page">
+        <div class="cover-title">UPI Offline Mesh Network Simulator</div>
+        <div class="cover-subtitle">Architectural Specification & Technical Implementation Documentation</div>
+        
+        <div class="cover-metadata">
+            <strong>System Version:</strong> v1.1.0<br/>
+            <strong>Core Technologies:</strong> Spring Boot 3.3, H2 Database, Thymeleaf MVC, Hybrid Cryptography<br/>
+            <strong>Document Date:</strong> July 8, 2026<br/>
+            <strong>Status:</strong> Architectural Release
+        </div>
+    </div>
+
+    <!-- Section 1 -->
+    <h2>1. Executive Summary & Background</h2>
+    <p>
+        Modern payment architectures rely on constant, low-latency connectivity to Centralized Identity Providers (CIPs) and Core Banking Systems (CBS). In developing economies, transactions are frequently interrupted in remote rural regions, underground transport corridors, and during power or telecom grid failures.
+    </p>
+    <p>
+        The <strong>UPI Offline Mesh Network Simulator</strong> introduces a deferred-settlement payment protocol modeled after asynchronous store-and-forward networks. The protocol allows users to issue, sign, and propagate cryptographically secured payment packets directly between mobile units over localized wireless interfaces (such as Bluetooth Low Energy or Wi-Fi Direct). These packets travel peer-to-peer (P2P) through intermediate helper nodes until a node with active internet connectivity (a Bridge Node) enters a Gateway coverage area and commits the payment to the centralized ledger.
+    </p>
+
+    <div class="note-box">
+        <strong>Key Objective:</strong> To allow transaction creation and balance transfer under zero-connectivity constraints, while ensuring cryptographically signed authenticity and robust double-spend verification upon reconciliation.
+    </div>
+
+    <!-- Section 2 -->
+    <h2>2. System Architecture & Component Design</h2>
+    <p>
+        The simulation codebase comprises a Spring Boot backend running in tandem with a high-fidelity interactive HTML5 Canvas visualizer. The component relationships are structured as follows:
+    </p>
+    
+    <h3>2.1 Core Components</h3>
+    <ul>
+        <li><strong>MeshSimulatorService (Backend Simulator)</strong>: Manages the spatial coordinates, transmission ranges, wireless propagation cycles, and local packet queues of all simulated mobile devices.</li>
+        <li><strong>Crypto & Wallet Subsystem</strong>: Provides RSA keypair generation, hybrid envelope packaging (AES-GCM-256 + RSA-2048), and digital signature verifications on devices and servers.</li>
+        <li><strong>Settlement Engine</strong>: Executes the ultimate transaction processing, executing ledger balance updates, double-spend check lookups, and transaction logging.</li>
+        <li><strong>Interactive Canvas Dashboard</strong>: Renders physical mesh nodes, visualizes connection ranges, captures drag-and-drop coordinate updates, and illustrates gossip signal waves and packet hops.</li>
+    </ul>
+
+    <h3>2.2 The Offline Transaction Lifecycle</h3>
+    <ol>
+        <li><strong>Wallet Signing & Payload Injection</strong>: The sender creates a payment transaction. The wallet signs the transaction hash using the sender's private key, wraps the details in an encrypted payload, and injects it into the starting phone's queue.</li>
+        <li><strong>Asynchronous Epidemic Gossip Hops</strong>: The starting node shares its transaction log with any adjacent nodes within wireless range. Gossip rounds occur periodically, transferring copies of the encrypted packet through the mesh.</li>
+        <li><strong>Gateway Uplink & Settlement</strong>: A bridge node receives the packet, moves into Gateway range, and flushes the queue to the settlement server. The server verifies the envelope, enforces idempotency, updates balances, and commits the records.</li>
+    </ol>
+
+    <!-- Section 3 -->
+    <div class="page-break"></div>
+    <h2>3. Cryptographic Specification & Security Design</h2>
+    <p>
+        To prevent eavesdropping, packet alteration, or sender repudiation, all offline transactions utilize a hybrid cryptographic envelope. The security pipeline contains the following specifications:
+    </p>
+    
+    <h3>3.1 RSA-2048 Digital Signatures</h3>
+    <p>
+        Every user wallet is initialized with a unique RSA-2048 public/private keypair. When a transaction is created, the wallet signs the payload:
+    </p>
+    <pre>Signature = RSA-Sign(Sender_Private_Key, SHA-256(SenderVPA || RecipientVPA || Amount || Nonce))</pre>
+    <p>
+        This signature prevents message tampering during the mesh routing phase. Any bit alteration made by a rogue peer node will invalidate the signature check performed by the server.
+    </p>
+
+    <h3>3.2 Local Balance Integrity & Cryptographic Wallets</h3>
+    <p>
+        Mobile nodes maintain an offline encrypted local balance. To deter local filesystem manipulation, the wallet is encrypted using a key derived from the user's PIN. This ensures that even if a physical device is compromised, raw wallet databases cannot be trivially extracted or written to without key derivation.
+    </p>
+
+    <table style="width:100%;">
+        <thead>
+            <tr>
+                <th>Security Threat</th>
+                <th>Mitigation Strategy</th>
+                <th>Implementation Layer</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Eavesdropping (Privacy Leak)</strong></td>
+                <td>Payload fields (Amount, Recipient) are encrypted with symmetric keys prior to gossiping.</td>
+                <td>Wallet Client (JS Simulator)</td>
+            </tr>
+            <tr>
+                <td><strong>Payload Alteration (Man-in-the-Middle)</strong></td>
+                <td>RSA-2048 signatures are verified by the server during settlement.</td>
+                <td>SettlementService (Java Backend)</td>
+            </tr>
+            <tr>
+                <td><strong>Replay Attacks</strong></td>
+                <td>Every transaction contains a unique cryptographic UUID/Nonce that is stored in the server's cache.</td>
+                <td>Idempotency Filter (Java Backend)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 4 -->
+    <h2>4. Double-Spend & Idempotency Safeguards</h2>
+    <p>
+        The critical risk in any offline payment system is the <strong>Double-Spend Threat</strong>. Since offline nodes do not have immediate access to a centralized balance database, an unprincipled sender could inject multiple transactions totaling more than their actual balance into different bridge nodes.
+    </p>
+
+    <h3>4.1 Trust-on-First-Sight (TOFS) & Idempotency Filter</h3>
+    <p>
+        The simulator implements a Trust-on-First-Sight validation mechanism:
+    </p>
+    <ul>
+        <li>The backend maintains an <strong>Idempotency Cache</strong> storing the hash of every processed payload.</li>
+        <li>When a duplicate packet is uploaded by a secondary bridge, the settlement engine identifies the payload hash collision and logs a <code>DUPLICATE_DROPPED</code> status, preventing duplicate ledger entries.</li>
+        <li>If a user executes a double-spend attempt, the first packet to reach the Gateway settles successfully, while subsequent conflicting transactions are flagged as <code>INVALID</code> due to insufficient balance.</li>
+    </ul>
+
+    <div class="warning-box">
+        <strong>Security Trade-Off:</strong> While this prevents database corruption and double-processing, the merchant or recipient is vulnerable to transaction rejection if they accept payments offline without real-time ledger clearance.
+    </div>
+
+    <!-- Section 5 -->
+    <div class="page-break"></div>
+    <h2>5. Technical & Architecture Trade-offs</h2>
+    <p>
+        Architecting distributed offline networks requires balancing the CAP theorem constraints (Consistency, Availability, and Partition Tolerance).
+    </p>
+
+    <h3>5.1 Consistency vs. Availability</h3>
+    <p>
+        Traditional credit card systems or standard UPI models favor <strong>Consistency</strong>: a transaction is blocked if the server cannot verify the client's current balance in real time. The offline mesh network favors <strong>Availability and Partition Tolerance</strong>, allowing transactions to proceed under network isolation at the cost of delayed, eventual consistency.
+    </p>
+
+    <h3>5.2 Data Storage: H2 In-Memory vs. PostgreSQL & Redis Caching</h3>
+    <p>
+        For simulation simplicity, the prototype utilizes an H2 In-Memory database coupled with JVM concurrent maps. The differences between this setup and a production deployment are outlined below:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Criteria</th>
+                <th>H2 In-Memory Database (Simulation)</th>
+                <th>PostgreSQL + Redis Cache (Production)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Performance & Latency</strong></td>
+                <td>Microsecond response times, but concurrent limits bounded by single JVM heap.</td>
+                <td>Redis handles sub-millisecond idempotency cache checks; PostgreSQL manages persistent transactions.</td>
+            </tr>
+            <tr>
+                <td><strong>Fault Tolerance</strong></td>
+                <td>Data is lost when the application process terminates.</td>
+                <td>Write-Ahead Logging (WAL) and Redis replication guarantee no data loss on hardware failures.</td>
+            </tr>
+            <tr>
+                <td><strong>Scalability</strong></td>
+                <td>Limited to a single server instance.</td>
+                <td>Horizontal read replicas and Redis clustering handle high-throughput national volume.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Section 6 -->
+    <h2>6. Interactive Walkthrough Tour Engine</h2>
+    <p>
+        To ensure non-technical presentation viewers immediately comprehend the offline routing sequence, the simulator incorporates a built-in interactive walkthrough tour:
+    </p>
+    <ul>
+        <li><strong>Spotlight Focus:</strong> The engine utilizes a semi-transparent screen mask overlay, dynamically calculating target element offsets using the browser's <code>BoundingClientRect</code>.</li>
+        <li><strong>Step Navigation:</strong> The walkthrough guides the user through transaction setup, mesh hops, network canvas interactions (dragging elements), gateway uploading, and ledger balance updates.</li>
+        <li><strong>First-Load Auto-run:</strong> Integrates local browser persistence storage (<code>localStorage</code>) to launch the guide automatically for first-time visitors, while remaining manually triggerable via a dedicated info icon button in the header.</li>
+    </ul>
+
+    <!-- Section 7 -->
+    <h2>7. Production Roadmap & Recommendations</h2>
+    <p>
+        To scale this prototype to a real-world production system, the following implementations are recommended:
+    </p>
+    <ol>
+        <li><strong>Hardware-level Peer Communication</strong>: Replace the simulated gossip timers with genuine Bluetooth Low Energy (BLE) peripheral/central advertising profiles or Wi-Fi Direct service discovery protocols on target mobile platforms.</li>
+        <li><strong>Hardware Secure Enclaves</strong>: Store the user's RSA private keys inside Android Keystore or iOS Secure Enclave modules, ensuring signatures cannot be extracted even on rooted hardware.</li>
+        <li><strong>Merchant Trust Credit Caps</strong>: Introduce pre-funded wallet credit buffers. Under zero network access, transactions are validated against a local secure hardware-locked wallet, capping maximum merchant liability during network outages.</li>
+    </ol>
+
+</body>
+</html>
