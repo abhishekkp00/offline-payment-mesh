@@ -66,17 +66,14 @@
             margin: 0 auto;
         }
 
-        /* Header & Guide Split Layout */
-        .top-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
+        /* Header Layout */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             margin-bottom: 24px;
-        }
-        @media(min-width: 992px) {
-            .top-section {
-                grid-template-columns: 1fr 400px;
-            }
+            position: relative;
+            gap: 20px;
         }
 
         .header-title h1 {
@@ -91,69 +88,39 @@
         }
 
         .header-title p {
-            margin: 0 0 20px 0;
+            margin: 0;
             font-size: 0.95rem;
             color: var(--text-muted);
-            max-width: 760px;
+            max-width: 800px;
             line-height: 1.6;
         }
 
-        /* Guide Card */
-        .guide-card {
+        /* Small Info Button (top right) */
+        .info-icon-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             background: #18181b;
             border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .guide-title {
-            margin: 0 0 12px 0;
-            font-size: 0.95rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 8px;
-        }
-
-        .guide-steps {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .guide-step {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 12px;
-            font-size: 0.8rem;
-            line-height: 1.4;
             color: var(--text-muted);
-        }
-
-        .guide-step:last-child {
-            margin-bottom: 0;
-        }
-
-        .guide-step-num {
-            background: var(--card-border);
-            color: #ffffff;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 1rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 0.75rem;
+            cursor: pointer;
+            box-shadow: none;
+            transition: all 0.15s ease;
+            padding: 0;
             flex-shrink: 0;
+            margin-top: 6px;
         }
-
-        .guide-step-num.primary { background: #1d4ed8; }
-        .guide-step-num.warning { background: #b45309; }
-        .guide-step-num.success { background: #047857; }
+        .info-icon-btn:hover {
+            background: #27272a;
+            color: #ffffff;
+            border-color: #3f3f46;
+        }
 
         /* Stats Row */
         .stats-bar {
@@ -279,6 +246,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: all 0.2s ease;
         }
 
         .panel-title {
@@ -350,7 +318,7 @@
             border-color: var(--primary);
         }
 
-        /* Clean Flat Developer Buttons */
+        /* Buttons */
         button {
             width: 100%;
             background: #27272a;
@@ -565,15 +533,43 @@
             color: var(--text-muted);
             margin-right: 4px;
         }
+
+        /* --- TOUR OVERLAY & TOOLTIP CSS --- */
+        .tour-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 1000;
+            display: none;
+            backdrop-filter: blur(1.5px);
+        }
+
+        .tour-card {
+            position: absolute;
+            background: #1e1e24;
+            border: 1px solid #3f3f46;
+            border-radius: 12px;
+            padding: 20px;
+            width: 320px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            display: none;
+        }
+
+        .tour-highlight {
+            position: relative;
+            z-index: 1002 !important;
+            outline: 2px solid var(--primary) !important;
+            outline-offset: 4px;
+            box-shadow: 0 0 15px rgba(37, 99, 235, 0.3) !important;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     
-    <!-- Top Header & Guide Panel -->
-    <div class="top-section">
-        
-        <!-- Left: App Details -->
+    <!-- Top Header -->
+    <header>
         <div class="header-title">
             <h1>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
@@ -585,68 +581,39 @@
                 This application models a deferred-settlement transaction system. Under zero-connectivity environments, 
                 secure packets hop asynchronously over local peer devices using epidemic routing. Once a bridge node enters the Gateway cell range, the payment is settlement-verified at the backend ledger.
             </p>
-            
-            <!-- Stats inline -->
-            <div class="stats-bar">
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Active Nodes</span>
-                        <span class="stat-value" id="stat-nodes-count">-</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon success">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Settled Ledgers</span>
-                        <span class="stat-value" id="stat-settled-count">-</span>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon warning">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <span class="stat-label">Idempotency Hashing</span>
-                        <span class="stat-value" id="stat-cache-count">-</span>
-                    </div>
-                </div>
+        </div>
+        <!-- Info button to start Tour -->
+        <button onclick="startTour()" class="info-icon-btn" title="Start Interactive Onboarding Tour">i</button>
+    </header>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Active Nodes</span>
+                <span class="stat-value" id="stat-nodes-count">-</span>
             </div>
         </div>
-
-        <!-- Right: Top-Right Interactive Protocol Guide -->
-        <div class="guide-card">
-            <h3 class="guide-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                Protocol Execution Guide
-            </h3>
-            <ul class="guide-steps">
-                <li class="guide-step">
-                    <span class="guide-step-num primary">1</span>
-                    <div>
-                        <strong>Create Wallet Transaction</strong><br/>
-                        Select accounts and amount. Click <em>Sign & Inject</em> to package the payload with hybrid crypto (RSA-2048 + AES-GCM-256) and inject it into an offline phone.
-                    </div>
-                </li>
-                <li class="guide-step">
-                    <span class="guide-step-num warning">2</span>
-                    <div>
-                        <strong>Propagate Over Mesh</strong><br/>
-                        Click <em>Execute Gossip Round</em>. Phone nodes in range (connected by lines) will sync and share packet logs locally via peer broadcast.
-                    </div>
-                </li>
-                <li class="guide-step">
-                    <span class="guide-step-num success">3</span>
-                    <div>
-                        <strong>Establish Uplink & Settle</strong><br/>
-                        Drag the bridge node (e.g. <code>phone-bridge</code>) close to the Gateway Tower. Click <em>Flush Gateway Uplink</em> to ingest the payload to the server backend.
-                    </div>
-                </li>
-            </ul>
+        <div class="stat-card">
+            <div class="stat-icon success">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Settled Ledgers</span>
+                <span class="stat-value" id="stat-settled-count">-</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon warning">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
+            </div>
+            <div class="stat-info">
+                <span class="stat-label">Idempotency Hashing</span>
+                <span class="stat-value" id="stat-cache-count">-</span>
+            </div>
         </div>
     </div>
 
@@ -759,7 +726,7 @@
     <div class="grid grid-2">
         
         <!-- Account Ledgers -->
-        <div class="card">
+        <div class="card" id="ledgers-card">
             <div class="card-header">
                 <h3 class="card-title" style="color: var(--success);">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/></svg>
@@ -807,7 +774,7 @@
     </div>
 
     <!-- Log Console -->
-    <div class="terminal-header">
+    <div class="terminal-header" id="logs-header">
         <span style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); text-transform: uppercase;">Simulation Activity Logs</span>
         <div class="terminal-actions">
             <button class="terminal-btn" onclick="clearLogs()">Clear</button>
@@ -815,6 +782,20 @@
         </div>
     </div>
     <div id="log"></div>
+</div>
+
+<!-- --- ONBOARDING TOUR MODAL STRUCTURE --- -->
+<div id="tour-overlay" class="tour-overlay" onclick="endTour()"></div>
+<div id="tour-card" class="tour-card">
+    <h4 id="tour-title" style="margin: 0 0 8px 0; font-size: 0.95rem; font-weight: 700; color: #ffffff;">Step Title</h4>
+    <p id="tour-body" style="margin: 0 0 16px 0; font-size: 0.8rem; color: var(--text-muted); line-height: 1.5;"></p>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="tour-progress" style="font-size: 0.75rem; color: var(--text-dark); font-weight: 600;">1 / 6</span>
+        <div style="display: flex; gap: 8px;">
+            <button id="tour-prev" class="terminal-btn" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="prevTourStep()">Back</button>
+            <button id="tour-next" class="primary" style="width: auto; padding: 4px 12px; font-size: 0.75rem;" onclick="nextTourStep()">Next</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -1006,13 +987,9 @@ function animate() {
     ctx.font = 'bold 9px "Plus Jakarta Sans"';
     ctx.textAlign = 'center';
     ctx.fillText('4G TOWER', gateway.x, gateway.y - 2);
-    ctx.fillStyle = varColorText();
+    ctx.fillStyle = '#a1a1aa';
     ctx.font = '600 8px "Plus Jakarta Sans"';
     ctx.fillText('GATEWAY', gateway.x, gateway.y + 10);
-    
-    function varColorText() {
-        return '#a1a1aa';
-    }
 
     // 2. Draw connections/mesh links (Emerald / Gray)
     for (let i = 0; i < devices.length; i++) {
@@ -1027,7 +1004,7 @@ function animate() {
                 ctx.beginPath();
                 ctx.moveTo(d1.x, d1.y);
                 ctx.lineTo(d2.x, d2.y);
-                ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)'; // Clean flat green link
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.4)';
                 ctx.lineWidth = 2;
                 ctx.stroke();
             }
@@ -1036,7 +1013,6 @@ function animate() {
 
     // 3. Draw device ranges and connection to Gateway
     for (let d of devices) {
-        // Flat bluetooth range circle
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.range, 0, Math.PI * 2);
         ctx.strokeStyle = '#27272a';
@@ -1077,7 +1053,6 @@ function animate() {
 
     // 5. Draw active devices
     for (let d of devices) {
-        // Circle body
         ctx.beginPath();
         ctx.arc(d.x, d.y, deviceRadius, 0, Math.PI * 2);
         ctx.fillStyle = d.hasInternet ? '#064e3b' : '#18181b';
@@ -1086,13 +1061,11 @@ function animate() {
         ctx.fill();
         ctx.stroke();
 
-        // Node ID Label
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 10px "Plus Jakarta Sans"';
         ctx.textAlign = 'center';
         ctx.fillText(d.deviceId.replace('phone-', 'PHONE '), d.x, d.y + 4);
 
-        // 4G indicator
         if (d.hasInternet) {
             ctx.beginPath();
             ctx.arc(d.x - 15, d.y - 15, 6, 0, Math.PI * 2);
@@ -1103,7 +1076,6 @@ function animate() {
             ctx.fillText('4G', d.x - 15, d.y - 13);
         }
 
-        // Pending packets badge
         if (d.packetCount > 0) {
             ctx.beginPath();
             ctx.arc(d.x + 16, d.y - 16, 8, 0, Math.PI * 2);
@@ -1253,6 +1225,126 @@ async function resetMesh() {
     await refresh(true);
 }
 
+// --- DYNAMIC ONBOARDING TOUR LOGIC ---
+const tourSteps = [
+    {
+        target: "header",
+        title: "📡 Welcome to UPI Offline Mesh",
+        content: "This application models a deferred-settlement transaction system. It allows offline phones to securely execute transactions that settle automatically when they connect to the internet. Let's do a quick walkthrough!"
+    },
+    {
+        target: ".control-panel.success",
+        title: "Step 1: Transaction Setup",
+        content: "Configure a payment instruction here (Sender, Recipient, Amount, and PIN). Click <strong>Sign & Inject</strong> to package it with secure hybrid encryption (RSA-2048 + AES-256) and load it into a starting offline phone."
+    },
+    {
+        target: ".control-panel.warning",
+        title: "Step 2: Epidemic Gossip Routing",
+        content: "Click <strong>Execute Gossip Round</strong> to broadcast the packet wirelessly (emulating Bluetooth/Wi-Fi Mesh) to all phone nodes physically within transmission range."
+    },
+    {
+        target: ".canvas-container",
+        title: "Step 3: Interactive Node Map",
+        content: "Drag phone nodes around! Position a node carrying a packet (or helper nodes) to propagate the transaction. Move the bridge node near the 4G Tower (Gateway) to establish active internet access."
+    },
+    {
+        target: ".control-panel.info",
+        title: "Step 4: Gateway Settlement",
+        content: "Once a packet reaches the internet-enabled bridge node, click <strong>Flush Gateway Uplink</strong>. The server processes the packet, checks for double-spend, and settles balances!"
+    },
+    {
+        target: "#ledgers-card",
+        title: "Step 5: Database Ledgers & Audit Logs",
+        content: "Watch these ledgers. The server immediately calculates the unique ciphertext hash to enforce idempotency. Balances update atomically upon successful verification!"
+    }
+];
+
+let currentTourStepIndex = 0;
+
+function startTour() {
+    currentTourStepIndex = 0;
+    document.getElementById('tour-overlay').style.display = 'block';
+    document.getElementById('tour-card').style.display = 'block';
+    showTourStep(0);
+}
+
+function endTour() {
+    document.getElementById('tour-overlay').style.display = 'none';
+    document.getElementById('tour-card').style.display = 'none';
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    localStorage.setItem('upi-tour-completed', 'true');
+}
+
+function nextTourStep() {
+    if (currentTourStepIndex < tourSteps.length - 1) {
+        currentTourStepIndex++;
+        showTourStep(currentTourStepIndex);
+    } else {
+        endTour();
+    }
+}
+
+function prevTourStep() {
+    if (currentTourStepIndex > 0) {
+        currentTourStepIndex--;
+        showTourStep(currentTourStepIndex);
+    }
+}
+
+function showTourStep(index) {
+    const step = tourSteps[index];
+    document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+    
+    const targetEl = document.querySelector(step.target);
+    const card = document.getElementById('tour-card');
+    
+    if (targetEl) {
+        targetEl.classList.add('tour-highlight');
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        setTimeout(() => {
+            const rect = targetEl.getBoundingClientRect();
+            const cardRect = card.getBoundingClientRect();
+            
+            let top = rect.bottom + window.scrollY + 12;
+            let left = rect.left + window.scrollX;
+            
+            if (left + 330 > window.innerWidth) {
+                left = window.innerWidth - 350;
+            }
+            if (left < 10) left = 10;
+            
+            if (top + cardRect.height > document.documentElement.scrollHeight) {
+                top = rect.top + window.scrollY - cardRect.height - 12;
+            }
+            
+            card.style.transform = 'none';
+            card.style.top = top + 'px';
+            card.style.left = left + 'px';
+        }, 100);
+    } else {
+        card.style.top = '50%';
+        card.style.left = '50%';
+        card.style.transform = 'translate(-50%, -50%)';
+    }
+    
+    document.getElementById('tour-title').innerText = step.title;
+    document.getElementById('tour-body').innerHTML = step.content;
+    document.getElementById('tour-progress').innerText = `${index + 1} / ${tourSteps.length}`;
+    document.getElementById('tour-prev').style.display = index === 0 ? 'none' : 'block';
+    document.getElementById('tour-next').innerText = index === tourSteps.length - 1 ? 'Finish' : 'Next';
+}
+
+// Check if onboarding tour has been completed in this browser
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        if (!localStorage.getItem('upi-tour-completed')) {
+            startTour();
+        }
+    }, 1000);
+});
+
+// Setup
 refresh(true).then(() => {
     requestAnimationFrame(animate);
 });
