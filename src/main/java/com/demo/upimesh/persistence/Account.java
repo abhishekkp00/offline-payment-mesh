@@ -1,12 +1,10 @@
-package com.demo.upimesh.model;
+package com.demo.upimesh.persistence;
 
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 
 /**
- * Simulated bank account. In a real system this would live in the bank's core,
- * not in our service. For the demo, we own the ledger.
+ * Ledger bank account entity.
  */
 @Entity
 @Table(name = "accounts")

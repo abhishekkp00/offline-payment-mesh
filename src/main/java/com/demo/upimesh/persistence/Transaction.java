@@ -1,14 +1,13 @@
-package com.demo.upimesh.model;
+package com.demo.upimesh.persistence;
 
+import com.demo.upimesh.protocol.TransactionState;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Permanent record of every settled transaction. Once written, never modified.
- * The packetHash is the idempotency key — uniqueness is enforced at the DB level
- * as a defense-in-depth fallback if the Redis-style cache layer ever fails.
+ * Audit record of every settled/processed transaction.
  */
 @Entity
 @Table(name = "transactions",
@@ -20,7 +19,7 @@ public class Transaction {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 64)
-    private String packetHash; // SHA-256 hex of the encrypted packet
+    private String packetHash; // SHA-256 hex of encrypted packet
 
     @Column(nullable = false)
     private String senderVpa;
@@ -47,7 +46,7 @@ public class Transaction {
     @Column(nullable = false)
     private Status status;
 
-    public enum Status { SETTLED, REJECTED }
+    public enum Status { SETTLED, REJECTED, DUPLICATE_DROPPED, EXPIRED }
 
     public Transaction() {}
 

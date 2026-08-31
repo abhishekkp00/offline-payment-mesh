@@ -1,8 +1,18 @@
 package com.demo.upimesh.controller;
 
+import com.demo.upimesh.bridge.BridgeIngestionService;
 import com.demo.upimesh.crypto.ServerKeyHolder;
-import com.demo.upimesh.model.*;
-import com.demo.upimesh.service.*;
+import com.demo.upimesh.dtn.MeshPacket;
+import com.demo.upimesh.idempotency.IdempotencyService;
+import com.demo.upimesh.observability.AuditLogger;
+import com.demo.upimesh.persistence.Account;
+import com.demo.upimesh.persistence.AccountRepository;
+import com.demo.upimesh.persistence.Transaction;
+import com.demo.upimesh.persistence.TransactionRepository;
+import com.demo.upimesh.simulator.DemoService;
+import com.demo.upimesh.simulator.MeshSimulatorService;
+import com.demo.upimesh.simulator.VirtualDevice;
+import com.demo.upimesh.wallet.WalletService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,13 +21,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 /**
- * Public REST surface.
- *
- * The endpoints split into three groups:
- *   /api/server-key      → so simulated senders can fetch the server's public key
- *   /api/mesh/*          → simulator endpoints (inject, gossip, flush)
- *   /api/bridge/ingest   → THE real production endpoint a real bridge node would hit
- *   /api/accounts, /api/transactions → for the dashboard
+ * Public REST endpoints surface.
  */
 @RestController
 @RequestMapping("/api")
@@ -30,6 +34,8 @@ public class ApiController {
     @Autowired private AccountRepository accountRepo;
     @Autowired private TransactionRepository txRepo;
     @Autowired private IdempotencyService idempotency;
+    @Autowired private WalletService walletService;
+    @Autowired private AuditLogger auditLogger;
 
     // ------------------------------------------------------------------ key
 
@@ -38,16 +44,13 @@ public class ApiController {
         return Map.of(
                 "publicKey", serverKey.getPublicKeyBase64(),
                 "algorithm", "RSA-2048 / OAEP-SHA256",
-                "hybridScheme", "RSA-OAEP encrypts an AES-256-GCM session key"
+                "hybridScheme", "RSA-OAEP encrypts an AES-256-GCM session key",
+                "protocolVersion", "1.0.0"
         );
     }
 
     // ---------------------------------------------------------------- demo
 
-    /**
-     * Demo helper: build a packet on the server (simulating a sender phone)
-     * and inject it into the mesh at the given device.
-     */
     @PostMapping("/demo/send")
     public ResponseEntity<?> demoSend(@RequestBody DemoSendRequest req) throws Exception {
         MeshPacket packet = demo.createPacket(
@@ -59,9 +62,10 @@ public class ApiController {
 
         return ResponseEntity.ok(Map.of(
                 "packetId", packet.getPacketId(),
-                "ciphertextPreview", packet.getCiphertext().substring(0, 64) + "...",
+                "ciphertextPreview", packet.getCiphertext().substring(0, Math.min(64, packet.getCiphertext().length())) + "...",
                 "ttl", packet.getTtl(),
-                "injectedAt", startDevice
+                "injectedAt", startDevice,
+                "protocolVersion", packet.getVersion()
         ));
     }
 
@@ -85,17 +89,18 @@ public class ApiController {
                     "hasInternet", d.hasInternet(),
                     "packetCount", d.packetCount(),
                     "packetIds", d.getHeldPackets().stream()
-                            .map(p -> p.getPacketId().substring(0, 8))
+                            .map(p -> p.getPacketId().substring(0, Math.min(8, p.getPacketId().length())))
                             .toList(),
                     "x", d.getX(),
                     "y", d.getY(),
                     "range", d.getRange()
             ));
         }
-        return Map.of(
-                "devices", deviceData,
-                "idempotencyCacheSize", idempotency.size()
-        );
+        Map<String, Object> result = new HashMap<>();
+        result.put("devices", deviceData);
+        result.put("idempotencyCacheSize", idempotency.size());
+        result.put("metrics", auditLogger.getMetricsSnapshot());
+        return result;
     }
 
     @PostMapping("/mesh/update-positions")
@@ -127,27 +132,18 @@ public class ApiController {
         );
     }
 
-    /**
-     * "All bridge nodes simultaneously walk outside and get 4G."
-     * They all upload everything they hold to /api/bridge/ingest.
-     *
-     * THIS is the moment the duplicate-storm idempotency case is tested:
-     * if multiple bridge nodes hold the same packet, the server gets multiple
-     * concurrent POSTs of the same ciphertext, and only one should settle.
-     */
     @PostMapping("/mesh/flush")
     public Map<String, Object> meshFlush() {
         List<MeshSimulatorService.BridgeUpload> uploads = mesh.collectBridgeUploads();
 
         List<Map<String, Object>> results = new ArrayList<>();
-        // Upload them in parallel to actually exercise concurrent idempotency.
         uploads.parallelStream().forEach(up -> {
             BridgeIngestionService.IngestResult r =
                     bridge.ingest(up.packet(), up.bridgeNodeId(), 5 - up.packet().getTtl());
             synchronized (results) {
                 results.add(Map.of(
                         "bridgeNode", up.bridgeNodeId(),
-                        "packetId", up.packet().getPacketId().substring(0, 8),
+                        "packetId", up.packet().getPacketId().substring(0, Math.min(8, up.packet().getPacketId().length())),
                         "outcome", r.outcome(),
                         "reason", r.reason() == null ? "" : r.reason(),
                         "transactionId", r.transactionId() == null ? -1 : r.transactionId()
@@ -170,11 +166,6 @@ public class ApiController {
 
     // -------------------------------------------------------------- bridge
 
-    /**
-     * THE PRODUCTION ENDPOINT.
-     * In a real deployment, the Android app's bridge logic POSTs here whenever
-     * the device has internet and is holding mesh packets.
-     */
     @PostMapping("/bridge/ingest")
     public ResponseEntity<?> ingest(
             @RequestBody MeshPacket packet,

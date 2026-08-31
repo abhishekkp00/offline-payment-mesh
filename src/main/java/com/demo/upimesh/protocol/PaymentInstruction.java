@@ -1,22 +1,14 @@
-package com.demo.upimesh.model;
+package com.demo.upimesh.protocol;
 
 import java.math.BigDecimal;
 
 /**
- * The actual payment instruction. After the server decrypts MeshPacket.ciphertext,
- * it gets one of these.
- *
- * Critical fields for security:
- *   - nonce: a UUID unique to this payment. Even if everything else were identical
- *            for two legitimate payments (alice sends bob ₹100 twice), the nonces
- *            differ, so the resulting ciphertexts and their hashes also differ.
- *   - signedAt: lets the server reject stale packets ("freshness window"). Without
- *               this, an attacker who got the ciphertext could replay it weeks later.
- *   - pinHash: in a real system the user enters a UPI PIN; we'd verify it against
- *              a hash held by the bank. Here we just record it for realism.
+ * Encrypted payload containing signed payment instruction details.
  */
 public class PaymentInstruction {
 
+    private String version = "1.0.0";
+    private String transactionId;
     private String senderVpa;
     private String receiverVpa;
     private BigDecimal amount;
@@ -28,6 +20,13 @@ public class PaymentInstruction {
 
     public PaymentInstruction(String senderVpa, String receiverVpa, BigDecimal amount,
                               String pinHash, String nonce, Long signedAt) {
+        this("1.0.0", TransactionId.generate().value(), senderVpa, receiverVpa, amount, pinHash, nonce, signedAt);
+    }
+
+    public PaymentInstruction(String version, String transactionId, String senderVpa, String receiverVpa,
+                              BigDecimal amount, String pinHash, String nonce, Long signedAt) {
+        this.version = version == null ? "1.0.0" : version;
+        this.transactionId = transactionId == null ? TransactionId.generate().value() : transactionId;
         this.senderVpa = senderVpa;
         this.receiverVpa = receiverVpa;
         this.amount = amount;
@@ -35,6 +34,12 @@ public class PaymentInstruction {
         this.nonce = nonce;
         this.signedAt = signedAt;
     }
+
+    public String getVersion() { return version; }
+    public void setVersion(String version) { this.version = version; }
+
+    public String getTransactionId() { return transactionId; }
+    public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
     public String getSenderVpa() { return senderVpa; }
     public void setSenderVpa(String senderVpa) { this.senderVpa = senderVpa; }

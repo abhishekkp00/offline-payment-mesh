@@ -1,28 +1,20 @@
-package com.demo.upimesh.service;
+package com.demo.upimesh.bridge;
 
 import com.demo.upimesh.crypto.HybridCryptoService;
-import com.demo.upimesh.model.MeshPacket;
-import com.demo.upimesh.model.PaymentInstruction;
-import com.demo.upimesh.model.Transaction;
+import com.demo.upimesh.dtn.MeshPacket;
+import com.demo.upimesh.idempotency.IdempotencyService;
+import com.demo.upimesh.observability.AuditLogger;
+import com.demo.upimesh.persistence.Transaction;
+import com.demo.upimesh.protocol.PaymentInstruction;
+import com.demo.upimesh.security.SecurityValidationService;
+import com.demo.upimesh.settlement.SettlementService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-
 /**
- * Orchestrates the full server-side pipeline for one inbound packet from a
- * bridge node:
- *
- *   1. Hash the ciphertext.
- *   2. Try to claim that hash via the idempotency cache.
- *      - If already claimed: this is a duplicate. Drop it.
- *   3. Decrypt the ciphertext with the server's private key.
- *      - If decryption fails: tampered or junk. Reject.
- *   4. Check freshness — reject if signedAt is too old (replay protection).
- *   5. Hand off to SettlementService for the actual debit/credit.
+ * Orchestrates server-side ingestion for DTN bundles uploaded by bridge nodes.
  */
 @Service
 public class BridgeIngestionService {
@@ -31,49 +23,51 @@ public class BridgeIngestionService {
 
     @Autowired private HybridCryptoService crypto;
     @Autowired private IdempotencyService idempotency;
+    @Autowired private SecurityValidationService securityValidation;
     @Autowired private SettlementService settlement;
-
-    @Value("${upi.mesh.packet-max-age-seconds:86400}")
-    private long maxAgeSeconds;
+    @Autowired private AuditLogger auditLogger;
 
     public IngestResult ingest(MeshPacket packet, String bridgeNodeId, int hopCount) {
         try {
+            auditLogger.recordEvent("INGESTED", packet.getPacketId(), "bridge=" + bridgeNodeId);
             String packetHash = crypto.hashCiphertext(packet.getCiphertext());
 
-            // ---- Idempotency gate ----
+            // 1. Idempotency Gate
             if (!idempotency.claim(packetHash)) {
                 log.info("DUPLICATE packet {} from bridge {} — dropped",
                         packetHash.substring(0, 12) + "...", bridgeNodeId);
+                auditLogger.recordEvent("DUPLICATE_DROPPED", packetHash, "bridge=" + bridgeNodeId);
                 return IngestResult.duplicate(packetHash);
             }
 
-            // ---- Decrypt ----
+            // 2. Decrypt
             PaymentInstruction instruction;
             try {
                 instruction = crypto.decrypt(packet.getCiphertext());
             } catch (Exception e) {
                 log.warn("Decryption failed for packet {}: {}",
                         packetHash.substring(0, 12) + "...", e.getMessage());
+                auditLogger.recordEvent("INVALID", packetHash, "decryption_failed");
                 return IngestResult.invalid(packetHash, "decryption_failed");
             }
 
-            // ---- Freshness check (replay protection) ----
-            long ageSeconds = (Instant.now().toEpochMilli() - instruction.getSignedAt()) / 1000;
-            if (ageSeconds > maxAgeSeconds) {
-                log.warn("Packet {} too old ({}s), rejected",
-                        packetHash.substring(0, 12) + "...", ageSeconds);
-                return IngestResult.invalid(packetHash, "stale_packet");
-            }
-            if (ageSeconds < -300) { // small clock-skew tolerance
-                return IngestResult.invalid(packetHash, "future_dated");
+            // 3. Security & Protocol Validation
+            try {
+                securityValidation.validateInstruction(instruction);
+            } catch (Exception e) {
+                log.warn("Validation failed for packet {}: {}",
+                        packetHash.substring(0, 12) + "...", e.getMessage());
+                auditLogger.recordEvent("INVALID", packetHash, e.getMessage());
+                return IngestResult.invalid(packetHash, e.getMessage());
             }
 
-            // ---- Settle ----
+            // 4. Settle
             Transaction tx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
             return IngestResult.settled(packetHash, tx);
 
         } catch (Exception e) {
             log.error("Ingestion error: {}", e.getMessage(), e);
+            auditLogger.recordEvent("INVALID", "?", "internal_error: " + e.getMessage());
             return IngestResult.invalid("?", "internal_error: " + e.getMessage());
         }
     }

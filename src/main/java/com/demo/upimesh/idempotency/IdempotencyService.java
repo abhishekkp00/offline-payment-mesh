@@ -1,4 +1,4 @@
-package com.demo.upimesh.service;
+package com.demo.upimesh.idempotency;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -9,17 +9,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * In-memory idempotency cache. In production this would be Redis with SETNX +
- * TTL — exactly the same semantics, just distributed across instances.
- *
- * The contract:
- *   - claim(hash) returns true on first call, false on every call after that
- *     (within the TTL window)
- *   - the operation is atomic — even if 100 threads call claim(hash) at the
- *     same instant, exactly one returns true
- *
- * This is what kills the "three bridges deliver simultaneously" problem.
- * ConcurrentHashMap.putIfAbsent is the JVM-local equivalent of Redis SETNX.
+ * In-memory idempotency cache for deduplicating incoming DTN bundles.
  */
 @Service
 public class IdempotencyService {
@@ -37,6 +27,10 @@ public class IdempotencyService {
         Instant now = Instant.now();
         Instant prev = seen.putIfAbsent(packetHash, now);
         return prev == null;
+    }
+
+    public boolean isClaimed(String packetHash) {
+        return seen.containsKey(packetHash);
     }
 
     public int size() {

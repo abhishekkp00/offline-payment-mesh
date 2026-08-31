@@ -1,10 +1,12 @@
-package com.demo.upimesh.service;
+package com.demo.upimesh.settlement;
 
-import com.demo.upimesh.model.Account;
-import com.demo.upimesh.model.AccountRepository;
-import com.demo.upimesh.model.PaymentInstruction;
-import com.demo.upimesh.model.Transaction;
-import com.demo.upimesh.model.TransactionRepository;
+import com.demo.upimesh.observability.AuditLogger;
+import com.demo.upimesh.persistence.Account;
+import com.demo.upimesh.persistence.AccountRepository;
+import com.demo.upimesh.persistence.Transaction;
+import com.demo.upimesh.persistence.TransactionRepository;
+import com.demo.upimesh.protocol.PaymentInstruction;
+import com.demo.upimesh.wallet.WalletService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,14 +17,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Where the actual ledger update happens. Wrapped in a DB transaction so either
- * BOTH the debit and credit happen, or neither does.
- *
- * The @Version column on Account gives us optimistic locking — if two threads
- * somehow get past idempotency and both try to debit the same account, the
- * second one will fail with OptimisticLockException rather than corrupting
- * the balance. (In a demo the idempotency layer should always catch this first,
- * but defense in depth.)
+ * Handles atomic balance settlement and ledger transaction updates.
  */
 @Service
 public class SettlementService {
@@ -31,6 +26,8 @@ public class SettlementService {
 
     @Autowired private AccountRepository accounts;
     @Autowired private TransactionRepository transactions;
+    @Autowired private WalletService walletService;
+    @Autowired private AuditLogger auditLogger;
 
     @Transactional
     public Transaction settle(PaymentInstruction instruction, String packetHash,
@@ -52,6 +49,7 @@ public class SettlementService {
         if (sender.getBalance().compareTo(amount) < 0) {
             log.warn("Insufficient balance: {} has ₹{}, tried to send ₹{}",
                     sender.getVpa(), sender.getBalance(), amount);
+            auditLogger.recordEvent("REJECTED", packetHash, "insufficient_balance");
             return recordRejected(instruction, packetHash, bridgeNodeId, hopCount);
         }
 
@@ -59,6 +57,9 @@ public class SettlementService {
         receiver.setBalance(receiver.getBalance().add(amount));
         accounts.save(sender);
         accounts.save(receiver);
+
+        // Commit wallet reservation
+        walletService.getWalletByVpa(sender.getVpa()).commitReservation(amount);
 
         Transaction tx = new Transaction();
         tx.setPacketHash(packetHash);
@@ -71,6 +72,8 @@ public class SettlementService {
         tx.setHopCount(hopCount);
         tx.setStatus(Transaction.Status.SETTLED);
         transactions.save(tx);
+
+        auditLogger.recordEvent("SETTLED", packetHash, "amount=" + amount + " sender=" + sender.getVpa());
 
         log.info("SETTLED ₹{} from {} to {} (packetHash={}, bridge={}, hops={})",
                 amount, sender.getVpa(), receiver.getVpa(),

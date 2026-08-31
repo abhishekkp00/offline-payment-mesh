@@ -1,13 +1,13 @@
 package com.demo.upimesh;
 
+import com.demo.upimesh.bridge.BridgeIngestionService;
 import com.demo.upimesh.crypto.HybridCryptoService;
 import com.demo.upimesh.crypto.ServerKeyHolder;
-import com.demo.upimesh.model.MeshPacket;
-import com.demo.upimesh.model.PaymentInstruction;
-import com.demo.upimesh.model.AccountRepository;
-import com.demo.upimesh.service.BridgeIngestionService;
-import com.demo.upimesh.service.DemoService;
-import com.demo.upimesh.service.IdempotencyService;
+import com.demo.upimesh.dtn.MeshPacket;
+import com.demo.upimesh.idempotency.IdempotencyService;
+import com.demo.upimesh.persistence.AccountRepository;
+import com.demo.upimesh.protocol.PaymentInstruction;
+import com.demo.upimesh.simulator.DemoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +20,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * The killer test: simulates the "three bridges deliver at the same instant"
- * scenario the user explicitly cared about.
+ * Concurrency & Idempotency verification test.
  */
 @SpringBootTest
 class IdempotencyConcurrencyTest {
@@ -40,11 +39,9 @@ class IdempotencyConcurrencyTest {
 
     @Test
     void singlePacketDeliveredByThreeBridgesSettlesExactlyOnce() throws Exception {
-        // Capture starting balances
         BigDecimal aliceBefore = accounts.findById("alice@demo").orElseThrow().getBalance();
         BigDecimal bobBefore = accounts.findById("bob@demo").orElseThrow().getBalance();
 
-        // One packet, but we'll deliver it from 3 "bridges" simultaneously
         MeshPacket packet = demoService.createPacket(
                 "alice@demo", "bob@demo", new BigDecimal("100.00"), "1234", 5);
 
@@ -66,14 +63,13 @@ class IdempotencyConcurrencyTest {
             });
         }
 
-        start.countDown(); // release all 3 threads at once
+        start.countDown();
         for (Future<?> f : futures) f.get(5, TimeUnit.SECONDS);
         pool.shutdown();
 
         assertEquals(1, settled.get(), "exactly one bridge should settle");
         assertEquals(2, duplicates.get(), "the other two should be duplicates");
 
-        // Balance moved exactly once
         BigDecimal aliceAfter = accounts.findById("alice@demo").orElseThrow().getBalance();
         BigDecimal bobAfter = accounts.findById("bob@demo").orElseThrow().getBalance();
         assertEquals(aliceBefore.subtract(new BigDecimal("100.00")), aliceAfter);
@@ -85,7 +81,6 @@ class IdempotencyConcurrencyTest {
         MeshPacket packet = demoService.createPacket(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234", 5);
 
-        // Flip a byte in the middle of the ciphertext
         char[] chars = packet.getCiphertext().toCharArray();
         chars[chars.length / 2] = chars[chars.length / 2] == 'A' ? 'B' : 'A';
         packet.setCiphertext(new String(chars));

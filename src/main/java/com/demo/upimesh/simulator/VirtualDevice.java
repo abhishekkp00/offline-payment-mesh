@@ -1,25 +1,21 @@
-package com.demo.upimesh.service;
+package com.demo.upimesh.simulator;
 
-import com.demo.upimesh.model.MeshPacket;
+import com.demo.upimesh.dtn.DtnBundleStore;
+import com.demo.upimesh.dtn.MeshPacket;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * A simulated phone in the mesh. Holds packets it has seen.
- *
- * In the real system, this state would be on a physical Android device,
- * with packets exchanged via BLE GATT characteristics.
+ * A simulated mobile phone node in the mesh.
  */
 public class VirtualDevice {
 
     private final String deviceId;
     private final boolean hasInternet;
-    private final Map<String, MeshPacket> heldPackets = new ConcurrentHashMap<>();
+    private final DtnBundleStore bundleStore = new DtnBundleStore();
     private double x;
     private double y;
-    private double range = 180.0; // Default range in pixels
+    private double range = 180.0;
 
     public VirtualDevice(String deviceId, boolean hasInternet) {
         this.deviceId = deviceId;
@@ -47,22 +43,22 @@ public class VirtualDevice {
     public void setRange(double range) { this.range = range; }
 
     public void hold(MeshPacket packet) {
-        heldPackets.putIfAbsent(packet.getPacketId(), packet);
+        bundleStore.store(packet);
     }
 
     public Collection<MeshPacket> getHeldPackets() {
-        return heldPackets.values();
+        return bundleStore.getBundles();
     }
 
     public boolean holds(String packetId) {
-        return heldPackets.containsKey(packetId);
+        return bundleStore.contains(packetId);
     }
 
     public int packetCount() {
-        return heldPackets.size();
+        return bundleStore.count();
     }
 
     public void clear() {
-        heldPackets.clear();
+        bundleStore.clear();
     }
 }
