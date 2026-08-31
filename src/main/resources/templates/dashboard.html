@@ -3,340 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPI Offline Mesh — Decentralized Asynchronous Settlement</title>
+    <title>UPI Offline Mesh — Engineering Control Console</title>
     
-    <!-- Expressive Typography -->
+    <!-- Typography: Inter for clean UI, JetBrains Mono ONLY for metrics, IDs, hashes, and logs -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #06080e;
-            --surface-bg: #0d111c;
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-hover: rgba(6, 182, 212, 0.4);
-            --brand-primary: #06b6d4; /* Electric Cyan */
-            --brand-secondary: #3b82f6; /* Vibrant Blue */
-            --brand-accent: #10b981; /* Emerald */
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --text-dark: #64748b;
-            --canvas-bg: #080b14;
+            --bg-dark: #0d1117;
+            --panel-bg: #161b22;
+            --panel-subtle: #21262d;
+            --border: #30363d;
+            --border-muted: #21262d;
+            --accent-blue: #2563eb;
+            --accent-blue-hover: #1d4ed8;
+            --status-healthy: #10b981;
+            --status-warning: #f59e0b;
+            --status-error: #ef4444;
+            --text-primary: #c9d1d9;
+            --text-heading: #f0f6fc;
+            --text-muted: #8b949e;
+            --canvas-bg: #090d16;
+            --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --radius-sm: 4px;
+            --radius-md: 6px;
         }
 
         * {
             box-sizing: border-box;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,0.1) transparent;
+            scrollbar-color: var(--border) transparent;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: var(--font-ui);
             margin: 0;
             padding: 0;
-            background: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.5;
+            font-size: 0.85rem;
         }
 
-        /* Ambient Hero Background Atmosphere */
-        .hero-background {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100vh;
-            min-height: 650px;
-            background: 
-                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.18), transparent),
-                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59, 130, 246, 0.12), transparent),
-                radial-gradient(ellipse 50% 50% at 20% 80%, rgba(16, 185, 129, 0.08), transparent);
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .container {
-            max-width: 1200px;
+        .console-container {
+            max-width: 1380px;
             margin: 0 auto;
-            padding: 0 24px;
+            padding: 16px;
         }
 
-        /* ---------------------------------------------------- HERO SECTION ---------------------------------------------------- */
-        .hero-section {
-            min-height: 90vh;
+        /* ---------------------------------------------------- CONTROL ROOM HEADER ---------------------------------------------------- */
+        header.control-header {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            text-align: center;
-            padding: 60px 0 40px 0;
-            position: relative;
-        }
-
-        .hero-brand {
-            font-family: 'Outfit', sans-serif;
-            font-size: clamp(2.5rem, 6vw, 4.8rem);
-            font-weight: 900;
-            letter-spacing: -0.04em;
-            line-height: 1.05;
-            background: linear-gradient(135deg, #ffffff 30%, #06b6d4 70%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0 0 16px 0;
-            animation: fadeInHero 1s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .hero-headline {
-            font-family: 'Outfit', sans-serif;
-            font-size: clamp(1.4rem, 3vw, 2.2rem);
-            font-weight: 800;
-            color: #ffffff;
-            margin: 0 0 16px 0;
-            letter-spacing: -0.02em;
-        }
-
-        .hero-subtext {
-            font-size: clamp(1rem, 1.5vw, 1.15rem);
-            color: var(--text-muted);
-            max-width: 720px;
-            margin: 0 0 32px 0;
-            line-height: 1.6;
-        }
-
-        .hero-cta-group {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            align-items: center;
+            margin-bottom: 16px;
             flex-wrap: wrap;
+            gap: 12px;
         }
 
-        /* Intentional Motion 1: Button Glow & Hover Lift */
-        .btn-primary {
-            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 0.95rem;
-            padding: 14px 32px;
-            border-radius: 50px;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
+        .header-title-block {
+            display: flex;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 40px rgba(6, 182, 212, 0.45);
+            gap: 12px;
         }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 14px 28px;
-            border-radius: 50px;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--border-hover);
+        .header-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            letter-spacing: -0.01em;
+            margin: 0;
         }
 
-        /* ---------------------------------------------------- SECTIONS (One Job per section) ---------------------------------------------------- */
-        .section {
-            padding: 80px 0;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .section-header {
-            margin-bottom: 32px;
-        }
-
-        .section-title {
-            font-family: 'Outfit', sans-serif;
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #ffffff;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.02em;
-        }
-
-        .section-desc {
-            font-size: 0.95rem;
+        .header-subtitle {
+            font-size: 0.75rem;
             color: var(--text-muted);
             margin: 0;
-            max-width: 680px;
+            padding-left: 12px;
+            border-left: 1px solid var(--border);
         }
 
-        /* Interactive Canvas Container */
-        .canvas-wrapper {
-            position: relative;
-            background: var(--canvas-bg);
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-            transition: border-color 0.3s ease;
-        }
-        .canvas-wrapper:hover {
-            border-color: var(--border-hover);
+        .header-metrics-bar {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
         }
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 420px;
+        .metric-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--panel-subtle);
+            padding: 4px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-muted);
         }
 
-        /* Interactive Section Forms & Ledgers (Cards allowed ONLY for interactive elements) */
-        .interactive-box {
-            background: var(--surface-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 24px;
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            text-transform: uppercase;
         }
 
-        .grid-3 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
+        .metric-val {
+            color: var(--text-heading);
+            font-weight: 600;
         }
 
-        .grid-2 {
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--status-healthy);
+        }
+
+        /* Buttons */
+        .btn {
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--panel-subtle);
+            color: var(--text-heading);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+        .btn:hover {
+            background: var(--border);
+            border-color: var(--text-muted);
+        }
+
+        .btn-primary {
+            background: var(--accent-blue);
+            border-color: var(--accent-blue);
+            color: #ffffff;
+        }
+        .btn-primary:hover {
+            background: var(--accent-blue-hover);
+            border-color: var(--accent-blue-hover);
+        }
+
+        .btn-success {
+            background: #059669;
+            border-color: #059669;
+            color: #ffffff;
+        }
+        .btn-success:hover { background: #10b981; }
+
+        .btn-warning {
+            background: #d97706;
+            border-color: #d97706;
+            color: #ffffff;
+        }
+        .btn-warning:hover { background: #f59e0b; }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Layout Grid */
+        .layout-grid {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 24px;
-        }
-        @media(min-width: 992px) {
-            .grid-2 { grid-template-columns: 1fr 1fr; }
+            gap: 16px;
         }
 
-        .form-group {
+        @media (min-width: 992px) {
+            .layout-grid-2 {
+                display: grid;
+                grid-template-columns: 1.1fr 0.9fr;
+                gap: 16px;
+            }
+        }
+
+        /* Panel Box (Control Room Container) */
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px 16px;
+            margin-bottom: 16px;
+        }
+
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-muted);
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        /* Forms */
+        .form-row {
             display: grid;
             grid-template-columns: 90px 1fr;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            margin-bottom: 8px;
         }
 
-        label {
-            font-size: 0.8rem;
+        .form-label {
+            font-size: 0.75rem;
             color: var(--text-muted);
-            font-weight: 600;
+            font-weight: 500;
         }
 
         input, select {
             width: 100%;
-            background: #06080e;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 9px 12px;
-            color: #ffffff;
-            font-family: inherit;
-            font-size: 0.85rem;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 5px 8px;
+            color: var(--text-heading);
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
             outline: none;
-            transition: border-color 0.2s ease;
         }
         input:focus, select:focus {
-            border-color: var(--brand-primary);
+            border-color: var(--accent-blue);
         }
 
+        /* Canvas visualizer */
+        .canvas-box {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            position: relative;
+        }
+        canvas { display: block; width: 100%; height: 360px; }
+
         /* Tables */
-        .table-container {
+        .table-box {
             overflow-x: auto;
-            max-height: 260px;
-            border-radius: 10px;
-            border: 1px solid var(--border-color);
-            background: #06080e;
+            max-height: 220px;
+            border: 1px solid var(--border-muted);
+            border-radius: var(--radius-sm);
+            background: var(--bg-dark);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.82rem;
+            font-size: 0.78rem;
             text-align: left;
         }
 
         th, td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border-muted);
         }
 
         th {
-            background: #0d111c;
+            background: var(--panel-subtle);
             color: var(--text-muted);
-            font-weight: 700;
-            font-size: 0.72rem;
+            font-weight: 600;
+            font-size: 0.7rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             position: sticky;
             top: 0;
             z-index: 10;
         }
 
-        .balance {
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--brand-accent);
-            font-weight: 600;
-        }
+        .mono { font-family: var(--font-mono); }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
+        .badge-status {
+            font-family: var(--font-mono);
             font-size: 0.68rem;
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
         }
-        .status-SETTLED { background: rgba(16, 185, 129, 0.15); color: #34d399; }
-        .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: #f87171; }
-        .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .status-SETTLED { background: rgba(16, 185, 129, 0.15); color: var(--status-healthy); }
+        .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: var(--status-error); }
+        .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: var(--status-warning); }
 
-        /* Console Log */
+        /* Log Terminal */
         #log {
-            background: #040508;
-            color: #94a3b8;
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            max-height: 200px;
+            background: #04060a;
+            color: var(--text-primary);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+            max-height: 180px;
             overflow-y: auto;
             white-space: pre-wrap;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
-        /* ---------------------------------------------------- ONBOARDING TOUR MODAL ---------------------------------------------------- */
+        /* Tour Modal */
         .tour-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 6, 14, 0.8);
+            background: rgba(0, 0, 0, 0.75);
             z-index: 1000;
             display: none;
-            backdrop-filter: blur(6px);
         }
 
         .tour-card {
             position: absolute;
-            background: #0d111c;
-            border: 1px solid var(--border-hover);
-            border-radius: 18px;
-            padding: 24px;
-            width: 380px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            background: var(--panel-bg);
+            border: 1px solid var(--accent-blue);
+            border-radius: var(--radius-md);
+            padding: 18px;
+            width: 360px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             z-index: 1001;
             display: none;
         }
@@ -344,199 +348,195 @@
         .tour-highlight {
             position: relative;
             z-index: 1002 !important;
-            outline: 2px solid var(--brand-primary) !important;
-            outline-offset: 6px;
-            box-shadow: 0 0 30px rgba(6, 182, 212, 0.4) !important;
-        }
-
-        /* Keyframe Motions */
-        @keyframes fadeInHero {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            outline: 2px solid var(--accent-blue) !important;
+            outline-offset: 4px;
         }
     </style>
 </head>
 <body>
 
-<div class="hero-background"></div>
+<div class="console-container">
 
-<div class="container">
-    
-    <!-- HERO SECTION (Strict Hero Budget & One Unified Composition) -->
-    <section class="hero-section" id="hero">
-        <h1 class="hero-brand">UPI OFFLINE MESH</h1>
-        <h2 class="hero-headline">Pay Anywhere. Zero Internet Required.</h2>
-        <p class="hero-subtext">
-            A cryptographically authenticated pre-funded offline wallet protocol. Payments hop asynchronously over peer Bluetooth & Wi-Fi meshes to reach 4G gateway bridges for central ledger settlement.
-        </p>
-        <div class="hero-cta-group">
-            <button class="btn-primary" onclick="runE2ESimulation()">
-                ▶ Run End-to-End Simulation
-            </button>
-            <button class="btn-secondary" onclick="startTour()">
-                Interactive Guided Tour
-            </button>
+    <!-- CONTROL ROOM HEADER -->
+    <header class="control-header" id="console-header">
+        <div class="header-title-block">
+            <h1 class="header-brand">UPI OFFLINE MESH</h1>
+            <p class="header-subtitle">Engineering Simulation & Settlement Console v1.0.0</p>
         </div>
-    </section>
 
-    <!-- SECTION 1: REAL-TIME MESH MAP (One Job: Physical Node Topology) -->
-    <section class="section" id="mesh-visualizer">
-        <div class="section-header">
-            <h3 class="section-title">Interactive Mesh Network Topology</h3>
-            <p class="section-desc">Drag mobile nodes to adjust radio coverage range. Move nodes carrying payment packets toward the 4G Cell Gateway zone to trigger internet uplink settlement.</p>
+        <div class="header-metrics-bar">
+            <div class="metric-item">
+                <span class="status-indicator"></span>
+                <span class="metric-label">Gateway:</span>
+                <span class="metric-val">ONLINE</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Active Nodes:</span>
+                <span class="metric-val" id="stat-nodes-count">-</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Settled:</span>
+                <span class="metric-val" id="stat-settled-count">-</span>
+            </div>
+            <div class="metric-item">
+                <span class="metric-label">Redis Locks:</span>
+                <span class="metric-val" id="stat-cache-count">-</span>
+            </div>
+            <button class="btn btn-primary" onclick="runE2ESimulation()">▶ Run E2E Simulation</button>
+            <button class="btn" onclick="startTour()">Guided Tour</button>
+            <button class="btn btn-danger" onclick="resetMesh()">Reset</button>
         </div>
-        <div class="canvas-wrapper">
-            <canvas id="meshCanvas" width="1152" height="420"></canvas>
-        </div>
-    </section>
+    </header>
 
-    <!-- SECTION 2: END-TO-END TELEMETRY REPORT (One Job: Verification Telemetry) -->
-    <section class="section" id="telemetry-section">
-        <div class="section-header">
-            <h3 class="section-title">End-to-End Production Telemetry</h3>
-            <p class="section-desc">Real-time outcome of 3-phase payment execution & 7 adversarial test cases (Replay, Tampering, Forged Signatures, Bridge Failure, Double Spending).</p>
-        </div>
+    <!-- MAIN TWO-COLUMN ENGINEERING GRID -->
+    <div class="layout-grid-2">
         
-        <div id="e2e-telemetry-container" class="interactive-box">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h4 style="margin: 0; font-size: 1rem; color: var(--brand-primary);">📊 Simulation Telemetry Result</h4>
-                <span class="badge status-SETTLED" id="e2e-settlement-state">RUN SIMULATION TO GENERATE</span>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: #06080e; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.82rem; margin-bottom: 20px;">
-                <div><span style="color: var(--text-muted);">Tx ID:</span> <strong id="e2e-tx-id" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Wallet ID:</span> <strong id="e2e-wallet-id" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Route:</span> <strong id="e2e-route" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Amount:</span> <strong id="e2e-amount" style="color: var(--brand-accent);">-</strong></div>
-                <div><span style="color: var(--text-muted);">DTN Hops:</span> <strong id="e2e-hops" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Algorithm:</span> <strong id="e2e-routing" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Bridge Node:</span> <strong id="e2e-bridge" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Security Check:</span> <strong id="e2e-security" style="color: #34d399;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Idempotency:</span> <strong id="e2e-idempotency" style="color: #fbbf24;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Settlement Latency:</span> <strong id="e2e-latency" style="color: #ffffff;">-</strong></div>
-            </div>
-
-            <h5 style="margin: 0 0 12px 0; font-size: 0.85rem; color: #ffffff;">Adversarial Test Suite Outcomes:</h5>
-            <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;">
-                <div style="background: #06080e; padding: 10px; border-radius: 8px; color: var(--text-dark);">Click "Run End-to-End Simulation" above to execute all 7 failure tests.</div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECTION 3: INTERACTIVE CONTROLS & LEDGERS (One Job: User Interaction) -->
-    <section class="section" id="controls-section">
-        <div class="section-header">
-            <h3 class="section-title">Manual Transaction Controls & Ledgers</h3>
-            <p class="section-desc">Create custom offline transactions, step through wireless gossip rounds, and inspect real-time database balance updates.</p>
-        </div>
-
-        <div class="grid-3" style="margin-bottom: 24px;">
-            <!-- Step 1 -->
-            <div class="interactive-box">
-                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: var(--brand-accent);">1. Offline Payment Sign</h4>
-                <div class="form-group">
-                    <label>Sender:</label>
-                    <select id="senderVpa"><option>alice@demo</option><option>bob@demo</option><option>carol@demo</option></select>
+        <!-- LEFT COLUMN: Canvas Visualizer & Manual Controls -->
+        <div>
+            <!-- Panel 1: Canvas Visualizer -->
+            <div class="panel" id="mesh-visualizer">
+                <div class="panel-header">
+                    <h2 class="panel-title">DTN Mesh Physical Topology Map</h2>
+                    <span style="font-size: 0.72rem; color: var(--text-muted);">Drag nodes to sync radio range</span>
                 </div>
-                <div class="form-group">
-                    <label>Recipient:</label>
-                    <select id="receiverVpa"><option>bob@demo</option><option>carol@demo</option><option>alice@demo</option><option>dave@demo</option></select>
-                </div>
-                <div class="form-group">
-                    <label>Amount:</label>
-                    <input type="number" id="amount" value="250">
-                </div>
-                <div class="form-group">
-                    <label>PIN:</label>
-                    <input type="password" id="pin" value="1234" maxlength="4" style="letter-spacing: 0.3em;">
-                </div>
-                <div class="form-group">
-                    <label>Start Node:</label>
-                    <select id="injectDevice"></select>
-                </div>
-                <button class="btn-primary" onclick="sendPacket()" style="width: 100%; border-radius: 8px; padding: 10px; margin-top: 10px;">
-                    Sign & Inject Packet
-                </button>
-            </div>
-
-            <!-- Step 2 -->
-            <div class="interactive-box">
-                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #fbbf24;">2. Mesh Gossip Hop</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
-                    Executes store-carry-forward replication between nodes physically within radio transmission range.
-                </p>
-                <button class="btn-secondary" onclick="gossip()" style="width: 100%; border-radius: 8px; padding: 10px;">
-                    Execute Gossip Round
-                </button>
-            </div>
-
-            <!-- Step 3 -->
-            <div class="interactive-box">
-                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: var(--brand-secondary);">3. Gateway Uplink</h4>
-                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
-                    Prompts gateway bridge nodes to ingest buffered packets to central server for idempotency & settlement.
-                </p>
-                <button class="btn-primary" onclick="flushBridges()" style="width: 100%; border-radius: 8px; padding: 10px; background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);">
-                    Flush Gateway Uplink
-                </button>
-            </div>
-        </div>
-
-        <!-- Ledgers side-by-side -->
-        <div class="grid-2">
-            <div class="interactive-box" id="ledgers-card">
-                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #ffffff;">User Wallet Balances</h4>
-                <div class="table-container">
-                    <table id="accounts-table">
-                        <thead><tr><th>VPA Address</th><th>Holder Name</th><th>Balance</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+                <div class="canvas-box">
+                    <canvas id="meshCanvas" width="700" height="360"></canvas>
                 </div>
             </div>
 
-            <div class="interactive-box">
-                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #ffffff;">Settled Transaction Ledger</h4>
-                <div class="table-container">
-                    <table id="tx-table">
-                        <thead><tr><th>ID</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Status</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+            <!-- Panel 2: Manual Packet Injector & Hop Operations -->
+            <div class="panel" id="controls-section">
+                <div class="panel-header">
+                    <h2 class="panel-title">Manual Transaction Ingestion & Hop Operations</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <div class="form-row">
+                            <span class="form-label">Sender:</span>
+                            <select id="senderVpa"><option>alice@demo</option><option>bob@demo</option><option>carol@demo</option></select>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">Recipient:</span>
+                            <select id="receiverVpa"><option>bob@demo</option><option>carol@demo</option><option>alice@demo</option><option>dave@demo</option></select>
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">Amount:</span>
+                            <input type="number" id="amount" value="250" class="mono">
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">PIN:</span>
+                            <input type="password" id="pin" value="1234" maxlength="4" class="mono">
+                        </div>
+                        <div class="form-row">
+                            <span class="form-label">Start Node:</span>
+                            <select id="injectDevice"></select>
+                        </div>
+                        <button class="btn btn-success" onclick="sendPacket()" style="width: 100%; margin-top: 6px;">Sign & Inject Packet</button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; justify-content: space-between;">
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.78rem; color: var(--text-heading);">Gossip Hop Execution</span>
+                            <p style="font-size: 0.73rem; color: var(--text-muted); margin: 4px 0 10px 0;">Triggers store-carry-forward packet replication between adjacent nodes within radio coverage.</p>
+                            <button class="btn btn-warning" onclick="gossip()" style="width: 100%;">Execute Gossip Round</button>
+                        </div>
+                        <div>
+                            <span style="font-weight: 600; font-size: 0.78rem; color: var(--text-heading);">Gateway Uplink Ingestion</span>
+                            <p style="font-size: 0.73rem; color: var(--text-muted); margin: 4px 0 10px 0;">Prompts 4G Gateway bridge nodes to upload packets for idempotency check & settlement.</p>
+                            <button class="btn btn-primary" onclick="flushBridges()" style="width: 100%;">Flush Gateway Uplink</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </section>
 
-    <!-- SECTION 4: ACTIVITY LOGS (One Job: Telemetry Logs) -->
-    <section class="section" id="logs-section">
-        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <!-- RIGHT COLUMN: Telemetry & Database Ledgers -->
+        <div>
+            <!-- Panel 3: E2E Telemetry & Adversarial Report -->
+            <div class="panel" id="telemetry-section">
+                <div class="panel-header">
+                    <h2 class="panel-title">Ingestion & Adversarial Telemetry</h2>
+                    <span class="badge-status status-SETTLED" id="e2e-settlement-state">READY</span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; background: var(--bg-dark); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-muted); margin-bottom: 12px;">
+                    <div><span style="color: var(--text-muted);">Tx ID:</span> <span class="mono" id="e2e-tx-id" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Wallet ID:</span> <span class="mono" id="e2e-wallet-id" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Route:</span> <span class="mono" id="e2e-route" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Amount:</span> <span class="mono" id="e2e-amount" style="color: var(--status-healthy);">-</span></div>
+                    <div><span style="color: var(--text-muted);">DTN Hops:</span> <span class="mono" id="e2e-hops" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Algorithm:</span> <span class="mono" id="e2e-routing" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Bridge:</span> <span class="mono" id="e2e-bridge" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Security Check:</span> <span class="mono" id="e2e-security" style="color: var(--status-healthy);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Idempotency:</span> <span class="mono" id="e2e-idempotency" style="color: var(--status-warning);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Latency:</span> <span class="mono" id="e2e-latency" style="color: var(--text-heading);">-</span></div>
+                </div>
+
+                <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-heading); display: block; margin-bottom: 6px;">Adversarial Test Matrix Outcomes:</span>
+                <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 0.72rem;" class="mono">
+                    <div style="color: var(--text-muted); background: var(--bg-dark); padding: 8px; border-radius: var(--radius-sm);">Run E2E simulation to execute 7 adversarial tests.</div>
+                </div>
+            </div>
+
+            <!-- Panel 4: Database Account Ledgers & Settled Transactions -->
+            <div class="panel" id="ledgers-card">
+                <div class="panel-header">
+                    <h2 class="panel-title">PostgreSQL Database Ledgers</h2>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+                    <div>
+                        <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">User Accounts</span>
+                        <div class="table-box">
+                            <table id="accounts-table">
+                                <thead><tr><th>VPA</th><th>Name</th><th>Balance</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Settled Ledger Transactions</span>
+                        <div class="table-box">
+                            <table id="tx-table">
+                                <thead><tr><th>ID</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Status</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PANEL 5: SYSTEM AUDIT LOG TERMINAL -->
+    <div class="panel" id="logs-section">
+        <div class="panel-header">
+            <h2 class="panel-title">System Audit Log Terminal</h2>
             <div>
-                <h3 class="section-title">System Activity Logs</h3>
-                <p class="section-desc">Live audit trail of cryptographic packet signatures, DTN gossip relays, and server ingestion states.</p>
-            </div>
-            <div>
-                <button class="btn-secondary" onclick="clearLogs()" style="padding: 6px 14px; font-size: 0.75rem;">Clear</button>
-                <button class="btn-secondary" onclick="copyLogs()" style="padding: 6px 14px; font-size: 0.75rem;">Copy</button>
+                <button class="btn" onclick="clearLogs()" style="padding: 3px 8px; font-size: 0.7rem;">Clear</button>
+                <button class="btn" onclick="copyLogs()" style="padding: 3px 8px; font-size: 0.7rem;">Copy</button>
             </div>
         </div>
         <div id="log"></div>
-    </section>
+    </div>
 
 </div>
 
-<!-- ONBOARDING TOUR MODAL (WITH SKIP DEMO BUTTON) -->
+<!-- ONBOARDING TOUR MODAL WITH SKIP OPTION -->
 <div id="tour-overlay" class="tour-overlay" onclick="endTour()"></div>
 <div id="tour-card" class="tour-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-        <h4 id="tour-title" style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Step Title</h4>
-        <button onclick="endTour()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <h4 id="tour-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-heading);">Step Title</h4>
+        <button onclick="endTour()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;">✕</button>
     </div>
-    <p id="tour-body" style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;"></p>
-    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
-        <span id="tour-progress" style="font-size: 0.75rem; color: var(--text-dark); font-weight: 700;">1 / 5</span>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <button class="btn-secondary" style="color: #f87171; border-color: rgba(239,68,68,0.3); padding: 6px 12px; font-size: 0.75rem;" onclick="endTour()">Skip Demo</button>
-            <button id="tour-prev" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="prevTourStep()">Back</button>
-            <button id="tour-next" class="btn-primary" style="padding: 6px 16px; font-size: 0.75rem;" onclick="nextTourStep()">Next</button>
+    <p id="tour-body" style="margin: 0 0 16px 0; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;"></p>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-muted); padding-top: 10px;">
+        <span id="tour-progress" class="mono" style="font-size: 0.72rem; color: var(--text-muted);">1 / 5</span>
+        <div style="display: flex; gap: 6px; align-items: center;">
+            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.72rem;" onclick="endTour()">Skip Demo</button>
+            <button id="tour-prev" class="btn" style="padding: 4px 8px; font-size: 0.72rem;" onclick="prevTourStep()">Back</button>
+            <button id="tour-next" class="btn btn-primary" style="padding: 4px 12px; font-size: 0.72rem;" onclick="nextTourStep()">Next</button>
         </div>
     </div>
 </div>
@@ -555,7 +555,7 @@ let activeRings = [];
 function log(msg) {
     const logDiv = document.getElementById('log');
     const timeStr = new Date().toTimeString().split(' ')[0];
-    logDiv.innerHTML = `<span style="color: var(--text-dark);">[${timeStr}]</span> <span style="color: var(--brand-primary);">➔</span> ${msg}\n` + logDiv.innerHTML;
+    logDiv.innerHTML = `<span style="color: var(--text-muted);">[${timeStr}]</span> <span style="color: var(--accent-blue);">➔</span> ${msg}\n` + logDiv.innerHTML;
 }
 
 function clearLogs() { document.getElementById('log').innerHTML = ''; }
@@ -568,6 +568,9 @@ async function refresh(fullReload = false) {
     try {
         const res = await fetch('/api/mesh/state');
         const data = await res.json();
+        
+        document.getElementById('stat-nodes-count').innerText = data.devices ? data.devices.length : 0;
+        document.getElementById('stat-cache-count').innerText = data.idempotencyCacheSize || 0;
         
         if (fullReload && data.devices) {
             devices = data.devices;
@@ -585,6 +588,7 @@ async function refresh(fullReload = false) {
         
         const txRes = await fetch('/api/transactions');
         const txs = await txRes.json();
+        document.getElementById('stat-settled-count').innerText = txs ? txs.filter(t => t.state === 'SETTLED').length : 0;
         renderTransactions(txs);
 
         const accRes = await fetch('/api/accounts');
@@ -614,9 +618,9 @@ function renderAccounts(accounts) {
     accounts.forEach(a => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-family: 'JetBrains Mono', monospace; color: var(--brand-primary);">${a.vpa}</td>
+            <td class="mono" style="color: var(--accent-blue);">${a.vpa}</td>
             <td><strong>${a.accountHolderName}</strong></td>
-            <td class="balance">₹${Number(a.balance).toFixed(2)}</td>
+            <td class="mono" style="color: var(--status-healthy); font-weight: 600;">₹${Number(a.balance).toFixed(2)}</td>
         `;
         tbody.appendChild(tr);
     });
@@ -629,11 +633,11 @@ function renderTransactions(txs) {
     txs.forEach(t => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-family: 'JetBrains Mono', monospace;">#${t.id}</td>
-            <td>${t.senderVpa}</td>
-            <td>${t.receiverVpa}</td>
-            <td class="balance">₹${Number(t.amount).toFixed(2)}</td>
-            <td><span class="badge status-${t.state}">${t.state}</span></td>
+            <td class="mono">#${t.id}</td>
+            <td class="mono">${t.senderVpa}</td>
+            <td class="mono">${t.receiverVpa}</td>
+            <td class="mono" style="color: var(--status-healthy); font-weight: 600;">₹${Number(t.amount).toFixed(2)}</td>
+            <td><span class="badge-status status-${t.state}">${t.state}</span></td>
         `;
         tbody.appendChild(tr);
     });
@@ -653,7 +657,7 @@ async function sendPacket() {
             body: JSON.stringify({ senderVpa, receiverVpa, amount, pin, startDevice, ttl: 5 })
         });
         const data = await res.json();
-        log(`Packet created & signed by ${senderVpa}! Ciphertext injected into node <strong>${startDevice}</strong>`);
+        log(`Signed packet injected into ${startDevice}. Ciphertext: ${data.ciphertextPreview}`);
         
         const dev = devices.find(d => d.deviceId === startDevice);
         if (dev) {
@@ -671,7 +675,7 @@ async function gossip() {
         const data = await res.json();
         if (data.transfers && data.transfers.length > 0) {
             data.transfers.forEach(t => {
-                log(`Gossip transfer: Packet <strong>${t.packetId}</strong> relayed from ${t.from} ➔ ${t.to}`);
+                log(`Gossip transfer: Packet ${t.packetId} relayed from ${t.from} ➔ ${t.to}`);
                 const fromDev = devices.find(d => d.deviceId === t.from);
                 const toDev = devices.find(d => d.deviceId === t.to);
                 if (fromDev && toDev) {
@@ -683,7 +687,7 @@ async function gossip() {
                 }
             });
         } else {
-            log('Gossip round executed: No nodes in radio proximity.');
+            log('Gossip round executed: No adjacent nodes within radio proximity.');
         }
         await refresh(false);
     } catch (e) {
@@ -697,7 +701,7 @@ async function flushBridges() {
         const data = await res.json();
         if (data.results && data.results.length > 0) {
             data.results.forEach(r => {
-                log(`Gateway Uplink [${r.bridgeNode}]: Packet #${r.packetId} ➔ <strong>${r.outcome}</strong> ${r.reason ? '(' + r.reason + ')' : ''}`);
+                log(`Gateway Ingestion [${r.bridgeNode}]: Packet #${r.packetId} ➔ ${r.outcome} ${r.reason ? '(' + r.reason + ')' : ''}`);
             });
         } else {
             log('Gateway Uplink executed: No pending packets at bridge nodes.');
@@ -731,19 +735,17 @@ async function runE2ESimulation() {
         if (data.demonstrationScenarios) {
             Object.entries(data.demonstrationScenarios).forEach(([name, result]) => {
                 const div = document.createElement('div');
-                div.style.background = '#06080e';
-                div.style.padding = '8px 12px';
-                div.style.borderRadius = '6px';
-                div.style.border = '1px solid rgba(255,255,255,0.08)';
-                div.innerHTML = `<span style="color: var(--text-muted);">${name}:</span> <strong style="color: #34d399;">${result}</strong>`;
+                div.style.background = 'var(--bg-dark)';
+                div.style.padding = '6px 10px';
+                div.style.borderRadius = 'var(--radius-sm)';
+                div.style.border = '1px solid var(--border-muted)';
+                div.innerHTML = `<span style="color: var(--text-muted);">${name}:</span> <strong style="color: var(--status-healthy);">${result}</strong>`;
                 scenariosContainer.appendChild(div);
             });
         }
 
         log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
         await refresh(true);
-
-        document.getElementById('telemetry-section').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         log('❌ Error running E2E Simulation: ' + e.message);
     }
@@ -757,84 +759,113 @@ async function resetMesh() {
     await refresh(true);
 }
 
-// Canvas Visualizer Loop
+// Canvas Visualizer Control Room Render
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // Tower background
-    ctx.fillStyle = 'rgba(6, 182, 212, 0.03)';
-    ctx.fillRect(750, 0, 410, canvas.height);
-    ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
-    ctx.setLineDash([5, 5]);
+    // Background Grid
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+    }
+
+    // 4G Gateway Zone (x >= 500 in 700px width canvas)
+    const gatewayX = canvas.width * (750 / 1152);
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.04)';
+    ctx.fillRect(gatewayX, 0, canvas.width - gatewayX, canvas.height);
+    ctx.strokeStyle = 'rgba(37, 99, 235, 0.25)';
+    ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    ctx.moveTo(750, 0);
-    ctx.lineTo(750, canvas.height);
+    ctx.moveTo(gatewayX, 0);
+    ctx.lineTo(gatewayX, canvas.height);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = 'rgba(255,255,255,0.3)';
-    ctx.font = '10px "Plus Jakarta Sans"';
-    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", 760, 20);
+    ctx.fillStyle = 'rgba(240, 246, 252, 0.4)';
+    ctx.font = '10px "JetBrains Mono"';
+    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 10, 20);
 
-    // Connectivity lines
+    // Proximity Lines
     for (let i = 0; i < devices.length; i++) {
         for (let j = i + 1; j < devices.length; j++) {
             const d1 = devices[i];
             const d2 = devices[j];
-            const dx = d1.x - d2.x;
-            const dy = d1.y - d2.y;
+            const scaledX1 = (d1.x / 1152) * canvas.width;
+            const scaledY1 = (d1.y / 420) * canvas.height;
+            const scaledX2 = (d2.x / 1152) * canvas.width;
+            const scaledY2 = (d2.y / 420) * canvas.height;
+            const dx = scaledX1 - scaledX2;
+            const dy = scaledY1 - scaledY2;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist <= d1.range || dist <= d2.range) {
-                ctx.strokeStyle = 'rgba(6, 182, 212, 0.18)';
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.moveTo(d1.x, d1.y);
-                ctx.lineTo(d2.x, d2.y);
+                ctx.moveTo(scaledX1, scaledY1);
+                ctx.lineTo(scaledX2, scaledY2);
                 ctx.stroke();
             }
         }
     }
 
-    // Devices
+    // Mobile Nodes
     devices.forEach(d => {
-        ctx.strokeStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.15)' : 'rgba(6, 182, 212, 0.1)';
-        ctx.fillStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.03)' : 'rgba(6, 182, 212, 0.02)';
+        const cx = (d.x / 1152) * canvas.width;
+        const cy = (d.y / 420) * canvas.height;
+
+        ctx.strokeStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.25)' : 'rgba(37, 99, 235, 0.15)';
+        ctx.fillStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.05)' : 'rgba(37, 99, 235, 0.04)';
         ctx.beginPath();
-        ctx.arc(d.x, d.y, d.range, 0, Math.PI * 2);
+        ctx.arc(cx, cy, d.range * (canvas.width / 1152), 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = d.hasInternet ? '#10b981' : (d.packetCount > 0 ? '#f59e0b' : '#06b6d4');
+        ctx.fillStyle = d.hasInternet ? '#10b981' : (d.packetCount > 0 ? '#f59e0b' : '#2563eb');
         ctx.beginPath();
-        ctx.arc(d.x, d.y, 14, 0, Math.PI * 2);
+        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
         ctx.fill();
 
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 10px "Plus Jakarta Sans"';
+        ctx.font = '600 10px "Inter"';
         ctx.textAlign = 'center';
-        ctx.fillText(d.deviceId.replace('phone-', '').replace('bridge-', 'B-'), d.x, d.y + 3);
+        ctx.fillText(d.deviceId.replace('phone-', '').replace('bridge-', 'B-'), cx, cy + 3.5);
 
         if (d.packetCount > 0) {
             ctx.fillStyle = '#ef4444';
             ctx.beginPath();
-            ctx.arc(d.x + 10, d.y - 10, 7, 0, Math.PI * 2);
+            ctx.arc(cx + 9, cy - 9, 6, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 9px "Plus Jakarta Sans"';
-            ctx.fillText(d.packetCount, d.x + 10, d.y - 7);
+            ctx.font = '600 8px "JetBrains Mono"';
+            ctx.fillText(d.packetCount, cx + 9, cy - 6);
         }
     });
 
-    // Particles
+    // Gossip Particles
     for (let i = activeParticles.length - 1; i >= 0; i--) {
         const p = activeParticles[i];
         p.progress += 0.03;
-        const curX = p.fromX + (p.toX - p.fromX) * p.progress;
-        const curY = p.fromY + (p.toY - p.fromY) * p.progress;
+        const fromX = (p.fromX / 1152) * canvas.width;
+        const fromY = (p.fromY / 420) * canvas.height;
+        const toX = (p.toX / 1152) * canvas.width;
+        const toY = (p.toY / 420) * canvas.height;
 
-        ctx.fillStyle = '#fbbf24';
+        const curX = fromX + (toX - fromX) * p.progress;
+        const curY = fromY + (toY - fromY) * p.progress;
+
+        ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
-        ctx.arc(curX, curY, 5, 0, Math.PI * 2);
+        ctx.arc(curX, curY, 4, 0, Math.PI * 2);
         ctx.fill();
 
         if (p.progress >= 1.0) activeParticles.splice(i, 1);
@@ -850,9 +881,11 @@ canvas.addEventListener('mousedown', (e) => {
     const my = e.clientY - rect.top;
 
     for (let d of devices) {
-        const dx = mx - d.x;
-        const dy = my - d.y;
-        if (Math.sqrt(dx * dx + dy * dy) <= 18) {
+        const cx = (d.x / 1152) * canvas.width;
+        const cy = (d.y / 420) * canvas.height;
+        const dx = mx - cx;
+        const dy = my - cy;
+        if (Math.sqrt(dx * dx + dy * dy) <= 16) {
             draggingDevice = d;
             dragOffsetX = dx;
             dragOffsetY = dy;
@@ -864,9 +897,12 @@ canvas.addEventListener('mousedown', (e) => {
 canvas.addEventListener('mousemove', (e) => {
     if (draggingDevice) {
         const rect = canvas.getBoundingClientRect();
-        draggingDevice.x = Math.max(20, Math.min(canvas.width - 20, e.clientX - rect.left - dragOffsetX));
-        draggingDevice.y = Math.max(20, Math.min(canvas.height - 20, e.clientY - rect.top - dragOffsetY));
-        draggingDevice.hasInternet = draggingDevice.x >= 750;
+        const curX = e.clientX - rect.left - dragOffsetX;
+        const curY = e.clientY - rect.top - dragOffsetY;
+
+        draggingDevice.x = Math.max(20, Math.min(1152, (curX / canvas.width) * 1152));
+        draggingDevice.y = Math.max(20, Math.min(420, (curY / canvas.height) * 420));
+        draggingDevice.hasInternet = draggingDevice.x >= (750);
     }
 });
 
@@ -881,32 +917,32 @@ canvas.addEventListener('mouseup', () => {
     }
 });
 
-// ONBOARDING TOUR MODAL LOGIC WITH SKIP DEMO OPTION
+// ONBOARDING TOUR MODAL LOGIC WITH SKIP OPTION
 const tourSteps = [
     {
-        target: "#hero",
-        title: "📡 UPI Offline Mesh Protocol",
-        content: "A peer-to-peer transaction system allowing offline phones to execute signed payments without internet, hopping packets over local Bluetooth & Wi-Fi meshes to reach 4G gateway bridges for central server settlement."
+        target: "#console-header",
+        title: "UPI Offline Mesh Console",
+        content: "Engineered for zero-connectivity environments. Payments are signed locally on mobile hardware and relayed over DTN peer mesh networks to gateway bridges for server settlement."
     },
     {
         target: "#mesh-visualizer",
-        title: "🗺️ Interactive Mesh Topology",
-        content: "Drag mobile nodes on the canvas map to change radio coverage range. Move nodes carrying payment packets into the 4G Cell Gateway zone to establish active internet uplink!"
-    },
-    {
-        target: "#telemetry-section",
-        title: "⚡ End-to-End Simulation & Adversarial Suite",
-        content: "Click <strong>Run End-to-End Simulation</strong> to execute the full 3-phase lifecycle and automatically verify 7 adversarial failure cases (Replay, Tampering, Forged Signatures, Bridge Failure, Double Spending)."
+        title: "DTN Topology Map",
+        content: "Drag phone nodes to adjust physical coordinates. Position packet-holding nodes into the 4G Cell Gateway zone to simulate internet uplink availability."
     },
     {
         target: "#controls-section",
-        title: "✍️ Interactive Transaction Controls & Ledgers",
-        content: "Select sender/receiver, input amount & PIN, then click <strong>Sign & Inject Packet</strong>. Inspect real-time user balances and settled database records."
+        title: "Manual Ingestion Operations",
+        content: "Select sender/receiver VPAs, input amount & PIN, and click <strong>Sign & Inject Packet</strong>. Step through wireless gossip rounds and flush gateway uplinks."
     },
     {
-        target: "#logs-section",
-        title: "📜 System Audit Logs",
-        content: "Inspect real-time telemetry log events, cryptographic packet digests, and server ingestion states."
+        target: "#telemetry-section",
+        title: "Ingestion & Adversarial Telemetry",
+        content: "Click <strong>▶ Run E2E Simulation</strong> in the top header to execute the complete 3-phase lifecycle and verify 7 adversarial failure cases in real time."
+    },
+    {
+        target: "#ledgers-card",
+        title: "PostgreSQL Database Ledgers",
+        content: "Inspect real-time account balances and settled transactions stored in PostgreSQL database entities."
     }
 ];
 
@@ -957,16 +993,16 @@ function showTourStep(index) {
             const rect = targetEl.getBoundingClientRect();
             const cardRect = card.getBoundingClientRect();
             
-            let top = rect.bottom + window.scrollY + 16;
+            let top = rect.bottom + window.scrollY + 12;
             let left = rect.left + window.scrollX;
             
-            if (left + 400 > window.innerWidth) {
-                left = window.innerWidth - 410;
+            if (left + 380 > window.innerWidth) {
+                left = window.innerWidth - 390;
             }
             if (left < 10) left = 10;
             
             if (top + cardRect.height > document.documentElement.scrollHeight) {
-                top = rect.top + window.scrollY - cardRect.height - 16;
+                top = rect.top + window.scrollY - cardRect.height - 12;
             }
             
             card.style.transform = 'none';
