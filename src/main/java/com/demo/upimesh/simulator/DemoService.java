@@ -52,16 +52,20 @@ public class DemoService {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 senderVpa, receiverVpa, amount, pin);
 
-        String ciphertext = crypto.encrypt(instruction, serverKey.getPublicKey());
-
         MeshPacket pkt = new MeshPacket();
         pkt.setVersion("1.0.0");
         pkt.setPacketId(UUID.randomUUID().toString());
-        pkt.setKeyId("key-server-rsa-2048");
+        pkt.setTransactionId(instruction.getTransactionId());
+        pkt.setWalletId(instruction.getWalletAuthorization() == null ? "wlet-" + senderVpa : instruction.getWalletAuthorization().getWalletId());
+        pkt.setKeyId(HybridCryptoService.SUPPORTED_KEY_ID);
         pkt.setOriginDeviceId("phone-" + senderVpa.split("@")[0]);
         pkt.setTtl(ttl);
-        pkt.setCreatedAt(System.currentTimeMillis());
+        pkt.setCreatedAt(instruction.getSignedAt());
+
+        byte[] aadBytes = pkt.getCanonicalAad();
+        String ciphertext = crypto.encrypt(instruction, serverKey.getPublicKey(), aadBytes);
         pkt.setCiphertext(ciphertext);
+
         return pkt;
     }
 }

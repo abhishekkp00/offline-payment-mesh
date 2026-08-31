@@ -29,39 +29,54 @@ public class BridgeIngestionService {
 
     public IngestResult ingest(MeshPacket packet, String bridgeNodeId, int hopCount) {
         try {
+            if (packet == null) {
+                return IngestResult.invalid("?", "null_packet");
+            }
+
             auditLogger.recordEvent("INGESTED", packet.getPacketId(), "bridge=" + bridgeNodeId);
+
+            // 1. Key ID / Algorithm Validation
+            try {
+                crypto.validateKeyId(packet.getKeyId());
+            } catch (Exception e) {
+                log.warn("Key ID validation failed for packet {}: {}", packet.getPacketId(), e.getMessage());
+                auditLogger.recordEvent("INVALID", packet.getPacketId(), "unsupported_key_id");
+                return IngestResult.invalid("?", "unsupported_key_id: " + e.getMessage());
+            }
+
             String packetHash = crypto.hashCiphertext(packet.getCiphertext());
 
-            // 1. Idempotency Gate
+            // 2. Idempotency Gate
             if (!idempotency.claim(packetHash)) {
                 log.info("DUPLICATE packet {} from bridge {} — dropped",
-                        packetHash.substring(0, 12) + "...", bridgeNodeId);
+                        packetHash.substring(0, Math.min(12, packetHash.length())) + "...", bridgeNodeId);
                 auditLogger.recordEvent("DUPLICATE_DROPPED", packetHash, "bridge=" + bridgeNodeId);
                 return IngestResult.duplicate(packetHash);
             }
 
-            // 2. Decrypt
+            // 3. Decrypt with AES-GCM Additional Authenticated Data (AAD) Verification
             PaymentInstruction instruction;
             try {
-                instruction = crypto.decrypt(packet.getCiphertext());
+                byte[] aadBytes = packet.getCanonicalAad();
+                instruction = crypto.decrypt(packet.getCiphertext(), aadBytes);
             } catch (Exception e) {
-                log.warn("Decryption failed for packet {}: {}",
-                        packetHash.substring(0, 12) + "...", e.getMessage());
-                auditLogger.recordEvent("INVALID", packetHash, "decryption_failed");
-                return IngestResult.invalid(packetHash, "decryption_failed");
+                log.warn("Decryption / AAD verification failed for packet {}: {}",
+                        packetHash.substring(0, Math.min(12, packetHash.length())) + "...", e.getMessage());
+                auditLogger.recordEvent("INVALID", packetHash, "decryption_or_aad_failed");
+                return IngestResult.invalid(packetHash, "decryption_or_aad_failed: " + e.getMessage());
             }
 
-            // 3. Security & Protocol Validation
+            // 4. Security & Protocol Validation
             try {
                 securityValidation.validateInstruction(instruction);
             } catch (Exception e) {
                 log.warn("Validation failed for packet {}: {}",
-                        packetHash.substring(0, 12) + "...", e.getMessage());
+                        packetHash.substring(0, Math.min(12, packetHash.length())) + "...", e.getMessage());
                 auditLogger.recordEvent("INVALID", packetHash, e.getMessage());
                 return IngestResult.invalid(packetHash, e.getMessage());
             }
 
-            // 4. Settle
+            // 5. Settle
             Transaction tx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
             return IngestResult.settled(packetHash, tx);
 

@@ -19,9 +19,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Concurrency & Idempotency verification test.
- */
 @SpringBootTest
 class IdempotencyConcurrencyTest {
 
@@ -95,8 +92,11 @@ class IdempotencyConcurrencyTest {
                 "alice@demo", "bob@demo", new BigDecimal("123.45"),
                 "abcdef", "nonce-1", System.currentTimeMillis());
 
-        String ct = crypto.encrypt(original, serverKey.getPublicKey());
-        PaymentInstruction decrypted = crypto.decrypt(ct);
+        byte[] aad = HybridCryptoService.computeCanonicalAad(
+                original.getVersion(), original.getTransactionId(), original.getTransactionId(), "wlet-alice", original.getSignedAt());
+
+        String ct = crypto.encrypt(original, serverKey.getPublicKey(), aad);
+        PaymentInstruction decrypted = crypto.decrypt(ct, aad);
 
         assertEquals(original.getSenderVpa(), decrypted.getSenderVpa());
         assertEquals(original.getReceiverVpa(), decrypted.getReceiverVpa());

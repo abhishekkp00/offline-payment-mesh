@@ -45,6 +45,24 @@ class AuthenticatedOfflineWalletTest {
         idempotency.clear();
     }
 
+    private MeshPacket createPacketWithMatchingAad(PaymentInstruction instruction) throws Exception {
+        MeshPacket packet = new MeshPacket();
+        packet.setVersion(instruction.getVersion());
+        packet.setPacketId(UUID.randomUUID().toString());
+        packet.setTransactionId(instruction.getTransactionId());
+        packet.setWalletId(instruction.getWalletAuthorization() == null ? "wlet-alice" : instruction.getWalletAuthorization().getWalletId());
+        packet.setKeyId(HybridCryptoService.SUPPORTED_KEY_ID);
+        packet.setOriginDeviceId("phone-alice");
+        packet.setTtl(5);
+        packet.setCreatedAt(instruction.getSignedAt());
+
+        byte[] aadBytes = packet.getCanonicalAad();
+        String ciphertext = crypto.encrypt(instruction, serverKey.getPublicKey(), aadBytes);
+        packet.setCiphertext(ciphertext);
+
+        return packet;
+    }
+
     // 1. Valid wallet issuance
     @Test
     void testValidWalletIssuance() {
@@ -71,12 +89,7 @@ class AuthenticatedOfflineWalletTest {
 
         assertDoesNotThrow(() -> securityValidation.validateInstruction(instruction));
 
-        String ciphertext = crypto.encrypt(instruction, serverKey.getPublicKey());
-        MeshPacket packet = new MeshPacket();
-        packet.setPacketId(UUID.randomUUID().toString());
-        packet.setTtl(5);
-        packet.setCreatedAt(System.currentTimeMillis());
-        packet.setCiphertext(ciphertext);
+        MeshPacket packet = createPacketWithMatchingAad(instruction);
 
         BridgeIngestionService.IngestResult result = bridge.ingest(packet, "bridge-1", 1);
         assertEquals("SETTLED", result.outcome());
@@ -97,7 +110,6 @@ class AuthenticatedOfflineWalletTest {
     // 4. Expired wallet authorization
     @Test
     void testExpiredWalletAuthorization() {
-        // Issue authorization expired 10 seconds ago
         WalletAuthorization auth = walletService.issueWalletAuthorization("alice@demo", new BigDecimal("500.00"), -10);
 
         PaymentInstruction instruction = new PaymentInstruction(
@@ -118,7 +130,6 @@ class AuthenticatedOfflineWalletTest {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234");
 
-        // Tamper amount after signature creation
         instruction.setAmount(new BigDecimal("500.00"));
 
         assertThrows(CryptographicValidationException.class, () -> securityValidation.validateInstruction(instruction));
@@ -131,7 +142,6 @@ class AuthenticatedOfflineWalletTest {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234");
 
-        // Tamper receiver VPA
         instruction.setReceiverVpa("carol@demo");
 
         assertThrows(CryptographicValidationException.class, () -> securityValidation.validateInstruction(instruction));
@@ -144,7 +154,6 @@ class AuthenticatedOfflineWalletTest {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234");
 
-        // Tamper client nonce
         instruction.setNonce(UUID.randomUUID().toString());
 
         assertThrows(CryptographicValidationException.class, () -> securityValidation.validateInstruction(instruction));
@@ -157,7 +166,6 @@ class AuthenticatedOfflineWalletTest {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234");
 
-        // Sign with a different random Ed25519 key
         KeyPair attackerKeys = ed25519Service.generateKeyPair();
         String forgedSig = ed25519Service.sign(instruction.getCanonicalData(), attackerKeys.getPrivate());
         instruction.setDeviceSignature(forgedSig);
@@ -170,7 +178,6 @@ class AuthenticatedOfflineWalletTest {
     void testInvalidWalletAuthorizationServerSignature() {
         WalletAuthorization auth = walletService.issueWalletAuthorization("alice@demo", new BigDecimal("500.00"), 3600);
 
-        // Tamper authorized balance inside token
         auth.setAuthorizedBalance(new BigDecimal("9999.00"));
 
         PaymentInstruction instruction = new PaymentInstruction(
@@ -191,18 +198,11 @@ class AuthenticatedOfflineWalletTest {
         PaymentInstruction instruction = walletService.prepareOfflineInstruction(
                 "alice@demo", "bob@demo", new BigDecimal("50.00"), "1234");
 
-        String ciphertext = crypto.encrypt(instruction, serverKey.getPublicKey());
-        MeshPacket packet = new MeshPacket();
-        packet.setPacketId(UUID.randomUUID().toString());
-        packet.setTtl(5);
-        packet.setCreatedAt(System.currentTimeMillis());
-        packet.setCiphertext(ciphertext);
+        MeshPacket packet = createPacketWithMatchingAad(instruction);
 
-        // First ingestion -> SETTLED
         BridgeIngestionService.IngestResult r1 = bridge.ingest(packet, "bridge-1", 1);
         assertEquals("SETTLED", r1.outcome());
 
-        // Replayed ingestion -> DUPLICATE_DROPPED
         BridgeIngestionService.IngestResult r2 = bridge.ingest(packet, "bridge-2", 2);
         assertEquals("DUPLICATE_DROPPED", r2.outcome());
     }
