@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPI Offline Mesh — Monitoring & Control Console</title>
+    <title>UPI Offline Mesh — Engineering Monitoring Console</title>
     
     <!-- Typography: Inter for UI, JetBrains Mono ONLY for metrics, IDs, hashes, amounts, and logs -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -226,8 +226,14 @@
             border-radius: var(--radius-sm);
             overflow: hidden;
             position: relative;
+            width: 100%;
         }
-        canvas { display: block; width: 100%; height: 370px; }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 380px;
+            touch-action: none;
+        }
 
         /* ---------------------------------------------------- SIDE PANEL FORMS & TELEMETRY ---------------------------------------------------- */
         .telemetry-grid {
@@ -397,19 +403,17 @@
         <div class="col-8">
             <div class="panel" id="mesh-visualizer" style="height: 100%;">
                 <div class="panel-header">
-                    <h2 class="panel-title">DTN Mesh Physical Topology & Radio Coverage Map</h2>
-                    <span style="font-size: 0.7rem; color: var(--text-muted);">Drag nodes to test proximity & 4G gateway uplink</span>
+                    <h2 class="panel-title">DTN Mesh Protocol Visualizer</h2>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Precise node drag & Store-Carry-Forward replication</span>
                 </div>
                 
                 <div class="canvas-container">
-                    <canvas id="meshCanvas" width="800" height="370"></canvas>
+                    <canvas id="meshCanvas"></canvas>
                 </div>
 
-                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-muted);">
-                    <div style="font-size: 0.72rem; color: var(--text-muted);">
-                        <span>● Blue: Offline Relay</span> &nbsp;|&nbsp;
-                        <span style="color: var(--status-warning);">● Amber: Held Packets</span> &nbsp;|&nbsp;
-                        <span style="color: var(--status-healthy);">● Green: Gateway Cell</span>
+                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 6px; border-top: 1px solid var(--border-muted);">
+                    <div style="font-size: 0.71rem; color: var(--text-muted); font-family: var(--font-mono);">
+                        Drag node into gateway zone to trigger 4G ingestion
                     </div>
                     <div style="display: flex; gap: 8px;">
                         <button class="btn btn-warning" onclick="gossip()">Execute Gossip Round</button>
@@ -557,12 +561,16 @@
 const canvas = document.getElementById('meshCanvas');
 const ctx = canvas.getContext('2d');
 
+const LOGICAL_WIDTH = 1152;
+const LOGICAL_HEIGHT = 420;
+
 let devices = [];
 let draggingDevice = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let activeParticles = [];
 let activeRings = [];
+let dashOffset = 0;
 
 function log(msg) {
     const logDiv = document.getElementById('log');
@@ -575,6 +583,17 @@ function copyLogs() {
     navigator.clipboard.writeText(document.getElementById('log').innerText);
     alert('Logs copied to clipboard!');
 }
+
+// Canvas Resolution & High-DPI Scaling Handler
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.resetTransform();
+    ctx.scale(dpr, dpr);
+}
+window.addEventListener('resize', resizeCanvas);
 
 async function refresh(fullReload = false) {
     try {
@@ -594,6 +613,7 @@ async function refresh(fullReload = false) {
                     existing.packetCount = updated.packetCount;
                     existing.packetIds = updated.packetIds;
                     existing.hasInternet = updated.hasInternet;
+                    if (updated.isFailed !== undefined) existing.isFailed = updated.isFailed;
                 }
             });
         }
@@ -673,7 +693,7 @@ async function sendPacket() {
         
         const dev = devices.find(d => d.deviceId === startDevice);
         if (dev) {
-            activeRings.push({ x: dev.x, y: dev.y, radius: 10, maxRadius: dev.range, alpha: 1.0 });
+            activeRings.push({ x: dev.x, y: dev.y, radius: 5, maxRadius: dev.range, alpha: 0.9, color: '#38bdf8' });
         }
         await refresh(false);
     } catch (e) {
@@ -696,6 +716,7 @@ async function gossip() {
                         toX: toDev.x, toY: toDev.y,
                         progress: 0
                     });
+                    activeRings.push({ x: toDev.x, y: toDev.y, radius: 4, maxRadius: toDev.range * 0.6, alpha: 0.8, color: '#f59e0b' });
                 }
             });
         } else {
@@ -714,6 +735,10 @@ async function flushBridges() {
         if (data.results && data.results.length > 0) {
             data.results.forEach(r => {
                 log(`Gateway Ingestion [${r.bridgeNode}]: Packet #${r.packetId} ➔ ${r.outcome} ${r.reason ? '(' + r.reason + ')' : ''}`);
+                const bridgeDev = devices.find(d => d.deviceId === r.bridgeNode);
+                if (bridgeDev) {
+                    activeRings.push({ x: bridgeDev.x, y: bridgeDev.y, radius: 8, maxRadius: 70, alpha: 1.0, color: '#10b981' });
+                }
             });
         } else {
             log('Gateway Uplink executed: No pending packets at bridge nodes.');
@@ -756,6 +781,12 @@ async function runE2ESimulation() {
             });
         }
 
+        devices.forEach(d => {
+            if (d.hasInternet) {
+                activeRings.push({ x: d.x, y: d.y, radius: 10, maxRadius: 90, alpha: 1.0, color: '#10b981' });
+            }
+        });
+
         log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
         await refresh(true);
     } catch (e) {
@@ -771,109 +802,211 @@ async function resetMesh() {
     await refresh(true);
 }
 
-// Canvas Visualizer Render
+// ---------------------------------------------------- RESTRAINED DTN PROTOCOL VISUALIZER ----------------------------------------------------
 function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Background Grid
+    const rect = canvas.getBoundingClientRect();
+    const cssW = rect.width;
+    const cssH = rect.height;
+
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    // 1. Subtle Background Grid Texture
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
+    const gridStep = 30;
+    for (let x = 0; x < cssW; x += gridStep) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.lineTo(x, cssH);
         ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += 40) {
+    for (let y = 0; y < cssH; y += gridStep) {
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.lineTo(canvas.width, y);
+        ctx.lineTo(cssW, y);
         ctx.stroke();
     }
 
-    // 4G Gateway Zone (x >= 520 in 800px canvas)
-    const gatewayX = canvas.width * (750 / 1152);
-    ctx.fillStyle = 'rgba(37, 99, 235, 0.04)';
-    ctx.fillRect(gatewayX, 0, canvas.width - gatewayX, canvas.height);
+    // 2. 4G Cell Gateway Internet Zone (Rightmost logical x >= 750)
+    const gatewayX = (750 / LOGICAL_WIDTH) * cssW;
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.035)';
+    ctx.fillRect(gatewayX, 0, cssW - gatewayX, cssH);
     ctx.strokeStyle = 'rgba(37, 99, 235, 0.25)';
-    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 5]);
     ctx.beginPath();
     ctx.moveTo(gatewayX, 0);
-    ctx.lineTo(gatewayX, canvas.height);
+    ctx.lineTo(gatewayX, cssH);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    ctx.fillStyle = 'rgba(240, 246, 252, 0.4)';
-    ctx.font = '10px "JetBrains Mono"';
-    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 10, 20);
+    ctx.fillStyle = 'rgba(240, 246, 252, 0.35)';
+    ctx.font = '600 9px "JetBrains Mono"';
+    ctx.textAlign = 'left';
+    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 12, 18);
 
-    // Proximity Lines
+    // 3. Compact Protocol Legend (Top-Left Overlay)
+    ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
+    ctx.fillRect(10, 10, 390, 22);
+    ctx.strokeStyle = 'rgba(38, 47, 61, 0.8)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(10, 10, 390, 22);
+
+    ctx.font = '600 8.5px "JetBrains Mono"';
+    ctx.fillStyle = '#64748b';
+    let lx = 18;
+    
+    // Legend items
+    ctx.fillStyle = '#38bdf8'; ctx.fillText("● NODE", lx, 24); lx += 52;
+    ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.6)'; ctx.fillText("─ ACTIVE LINK", lx, 24); lx += 80;
+    ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
+    ctx.fillStyle = '#f59e0b'; ctx.fillText("📦 PACKET", lx, 24); lx += 58;
+    ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
+    ctx.fillStyle = '#10b981'; ctx.fillText("⬢ BRIDGE", lx, 24); lx += 56;
+    ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
+    ctx.fillStyle = '#ef4444'; ctx.fillText("✖ FAILED", lx, 24); lx += 54;
+
+    dashOffset = (dashOffset + 0.3) % 10;
+
+    // 4. Active Transmission Links between nearby nodes
     for (let i = 0; i < devices.length; i++) {
         for (let j = i + 1; j < devices.length; j++) {
             const d1 = devices[i];
             const d2 = devices[j];
-            const scaledX1 = (d1.x / 1152) * canvas.width;
-            const scaledY1 = (d1.y / 420) * canvas.height;
-            const scaledX2 = (d2.x / 1152) * canvas.width;
-            const scaledY2 = (d2.y / 420) * canvas.height;
-            const dx = scaledX1 - scaledX2;
-            const dy = scaledY1 - scaledY2;
+            if (d1.isFailed || d2.isFailed) continue;
+
+            const sx1 = (d1.x / LOGICAL_WIDTH) * cssW;
+            const sy1 = (d1.y / LOGICAL_HEIGHT) * cssH;
+            const sx2 = (d2.x / LOGICAL_WIDTH) * cssW;
+            const sy2 = (d2.y / LOGICAL_HEIGHT) * cssH;
+
+            const dx = sx1 - sx2;
+            const dy = sy1 - sy2;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist <= d1.range || dist <= d2.range) {
-                ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+            const maxRange = (d1.range / LOGICAL_WIDTH) * cssW;
+
+            if (dist <= maxRange) {
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
                 ctx.lineWidth = 1;
+                ctx.setLineDash([4, 4]);
+                ctx.lineDashOffset = -dashOffset;
                 ctx.beginPath();
-                ctx.moveTo(scaledX1, scaledY1);
-                ctx.lineTo(scaledX2, scaledY2);
+                ctx.moveTo(sx1, sy1);
+                ctx.lineTo(sx2, sy2);
                 ctx.stroke();
+                ctx.setLineDash([]);
             }
         }
     }
 
-    // Mobile Nodes
+    // 5. Render Mobile & Bridge Nodes
     devices.forEach(d => {
-        const cx = (d.x / 1152) * canvas.width;
-        const cy = (d.y / 420) * canvas.height;
+        const cx = (d.x / LOGICAL_WIDTH) * cssW;
+        const cy = (d.y / LOGICAL_HEIGHT) * cssH;
+        const isBridge = d.hasInternet || d.deviceId.includes('bridge') || d.x >= 750;
+        const isFailed = d.isFailed === true;
 
-        ctx.strokeStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.25)' : 'rgba(37, 99, 235, 0.15)';
-        ctx.fillStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.05)' : 'rgba(37, 99, 235, 0.04)';
+        if (isFailed) {
+            ctx.globalAlpha = 0.35;
+        }
+
+        // Radio Coverage Subtle Halo
+        const rangeR = (d.range / LOGICAL_WIDTH) * cssW;
+        ctx.strokeStyle = isBridge ? 'rgba(16, 185, 129, 0.18)' : 'rgba(37, 99, 235, 0.12)';
+        ctx.fillStyle = isBridge ? 'rgba(16, 185, 129, 0.03)' : 'rgba(37, 99, 235, 0.02)';
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(cx, cy, d.range * (canvas.width / 1152), 0, Math.PI * 2);
+        ctx.arc(cx, cy, rangeR, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = d.hasInternet ? '#10b981' : (d.packetCount > 0 ? '#f59e0b' : '#2563eb');
-        ctx.beginPath();
-        ctx.arc(cx, cy, 12, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '600 10px "Inter"';
-        ctx.textAlign = 'center';
-        ctx.fillText(d.deviceId.replace('phone-', '').replace('bridge-', 'B-'), cx, cy + 3.5);
-
-        if (d.packetCount > 0) {
-            ctx.fillStyle = '#ef4444';
+        // Node Geometry
+        if (isBridge) {
+            // Distinct Hexagon/Diamond Badge for Bridge/Gateway
+            const s = 12;
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = isFailed ? '#ef4444' : '#10b981';
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.arc(cx + 9, cy - 9, 6, 0, Math.PI * 2);
+            ctx.moveTo(cx, cy - s);
+            ctx.lineTo(cx + s, cy);
+            ctx.lineTo(cx, cy + s);
+            ctx.lineTo(cx - s, cy);
+            ctx.closePath();
             ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = '600 8px "JetBrains Mono"';
-            ctx.fillText(d.packetCount, cx + 9, cy - 6);
+            ctx.stroke();
+
+            ctx.fillStyle = isFailed ? '#ef4444' : '#10b981';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Standard Mobile Node Circle
+            ctx.fillStyle = '#0f172a';
+            ctx.strokeStyle = isFailed ? '#64748b' : (d.packetCount > 0 ? '#f59e0b' : '#2563eb');
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.fillStyle = isFailed ? '#64748b' : (d.packetCount > 0 ? '#f59e0b' : '#38bdf8');
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3.5, 0, Math.PI * 2);
+            ctx.fill();
         }
+
+        // Node Label
+        ctx.fillStyle = isFailed ? '#64748b' : '#f1f5f9';
+        ctx.font = '600 9px "JetBrains Mono"';
+        ctx.textAlign = 'center';
+        const labelText = d.deviceId.toUpperCase();
+        ctx.fillText(labelText, cx, cy - 16);
+
+        // Failed Node Marker
+        if (isFailed) {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(cx - 5, cy - 5); ctx.lineTo(cx + 5, cy + 5);
+            ctx.moveTo(cx + 5, cy - 5); ctx.lineTo(cx - 5, cy + 5);
+            ctx.stroke();
+        }
+
+        // Packet Custody Indicator Badge
+        if (d.packetCount > 0 && !isFailed) {
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(cx + 8, cy - 14, 18, 12);
+            ctx.fillStyle = '#000000';
+            ctx.font = '700 8px "JetBrains Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText(`📦${d.packetCount}`, cx + 17, cy - 5);
+        }
+
+        ctx.globalAlpha = 1.0;
     });
 
-    // Gossip Particles
+    // 6. Stateful Animation: Directional Packet Transfer Pulses
     for (let i = activeParticles.length - 1; i >= 0; i--) {
         const p = activeParticles[i];
-        p.progress += 0.03;
-        const fromX = (p.fromX / 1152) * canvas.width;
-        const fromY = (p.fromY / 420) * canvas.height;
-        const toX = (p.toX / 1152) * canvas.width;
-        const toY = (p.toY / 420) * canvas.height;
+        p.progress += 0.035;
+
+        const fromX = (p.fromX / LOGICAL_WIDTH) * cssW;
+        const fromY = (p.fromY / LOGICAL_HEIGHT) * cssH;
+        const toX = (p.toX / LOGICAL_WIDTH) * cssW;
+        const toY = (p.toY / LOGICAL_HEIGHT) * cssH;
 
         const curX = fromX + (toX - fromX) * p.progress;
         const curY = fromY + (toY - fromY) * p.progress;
+
+        // Trail Pulse
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(fromX, fromY);
+        ctx.lineTo(curX, curY);
+        ctx.stroke();
 
         ctx.fillStyle = '#f59e0b';
         ctx.beginPath();
@@ -883,42 +1016,76 @@ function animate() {
         if (p.progress >= 1.0) activeParticles.splice(i, 1);
     }
 
+    // 7. Stateful Animation: Ring Expansion (Reception & Settlement Ripples)
+    for (let i = activeRings.length - 1; i >= 0; i--) {
+        const r = activeRings[i];
+        r.radius += 1.5;
+        r.alpha -= 0.02;
+
+        const cx = (r.x / LOGICAL_WIDTH) * cssW;
+        const cy = (r.y / LOGICAL_HEIGHT) * cssH;
+
+        ctx.strokeStyle = r.color || '#38bdf8';
+        ctx.globalAlpha = Math.max(0, r.alpha);
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1.0;
+
+        if (r.alpha <= 0 || r.radius >= r.maxRadius) {
+            activeRings.splice(i, 1);
+        }
+    }
+
     requestAnimationFrame(animate);
 }
 
-// Drag & Drop
-canvas.addEventListener('mousedown', (e) => {
+// ---------------------------------------------------- PRECISE DRAGGING & COORDINATE SCALING ----------------------------------------------------
+function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const cssX = clientX - rect.left;
+    const cssY = clientY - rect.top;
+    return {
+        cssX,
+        cssY,
+        logX: (cssX / rect.width) * LOGICAL_WIDTH,
+        logY: (cssY / rect.height) * LOGICAL_HEIGHT
+    };
+}
+
+function handleStart(e) {
+    const pos = getCanvasPos(e);
+    const cssW = canvas.getBoundingClientRect().width;
+    const cssH = canvas.getBoundingClientRect().height;
 
     for (let d of devices) {
-        const cx = (d.x / 1152) * canvas.width;
-        const cy = (d.y / 420) * canvas.height;
-        const dx = mx - cx;
-        const dy = my - cy;
+        const cx = (d.x / LOGICAL_WIDTH) * cssW;
+        const cy = (d.y / LOGICAL_HEIGHT) * cssH;
+        const dx = pos.cssX - cx;
+        const dy = pos.cssY - cy;
         if (Math.sqrt(dx * dx + dy * dy) <= 16) {
             draggingDevice = d;
-            dragOffsetX = dx;
-            dragOffsetY = dy;
+            dragOffsetX = d.x - pos.logX;
+            dragOffsetY = d.y - pos.logY;
             break;
         }
     }
-});
+}
 
-canvas.addEventListener('mousemove', (e) => {
+function handleMove(e) {
     if (draggingDevice) {
-        const rect = canvas.getBoundingClientRect();
-        const curX = e.clientX - rect.left - dragOffsetX;
-        const curY = e.clientY - rect.top - dragOffsetY;
-
-        draggingDevice.x = Math.max(20, Math.min(1152, (curX / canvas.width) * 1152));
-        draggingDevice.y = Math.max(20, Math.min(420, (curY / canvas.height) * 420));
-        draggingDevice.hasInternet = draggingDevice.x >= (750);
+        e.preventDefault();
+        const pos = getCanvasPos(e);
+        draggingDevice.x = Math.max(20, Math.min(LOGICAL_WIDTH - 20, pos.logX + dragOffsetX));
+        draggingDevice.y = Math.max(20, Math.min(LOGICAL_HEIGHT - 20, pos.logY + dragOffsetY));
+        draggingDevice.hasInternet = draggingDevice.x >= 750;
     }
-});
+}
 
-canvas.addEventListener('mouseup', () => {
+function handleEnd() {
     if (draggingDevice) {
         fetch('/api/mesh/update-positions', {
             method: 'POST',
@@ -927,7 +1094,16 @@ canvas.addEventListener('mouseup', () => {
         });
         draggingDevice = null;
     }
-});
+}
+
+canvas.addEventListener('mousedown', handleStart);
+canvas.addEventListener('mousemove', handleMove);
+canvas.addEventListener('mouseup', handleEnd);
+canvas.addEventListener('mouseleave', handleEnd);
+
+canvas.addEventListener('touchstart', handleStart, { passive: false });
+canvas.addEventListener('touchmove', handleMove, { passive: false });
+canvas.addEventListener('touchend', handleEnd);
 
 // ONBOARDING TOUR MODAL LOGIC WITH SKIP OPTION
 const tourSteps = [
@@ -1035,6 +1211,7 @@ function showTourStep(index) {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    resizeCanvas();
     setTimeout(() => {
         if (!localStorage.getItem('upi-tour-completed')) {
             startTour();
