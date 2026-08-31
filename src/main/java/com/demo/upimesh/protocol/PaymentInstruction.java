@@ -1,20 +1,26 @@
 package com.demo.upimesh.protocol;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 
 /**
- * Encrypted payload containing signed payment instruction details.
+ * Payment payload containing offline payment instruction, signed wallet authorization token,
+ * and device asymmetric signature.
  */
 public class PaymentInstruction {
 
     private String version = "1.0.0";
     private String transactionId;
+    private WalletAuthorization walletAuthorization;
     private String senderVpa;
     private String receiverVpa;
     private BigDecimal amount;
     private String pinHash;
-    private String nonce;     // UUID, unique per payment intent
-    private Long signedAt;    // epoch millis, when sender signed
+    private String nonce;            // Client UUID nonce
+    private Long signedAt;           // Epoch millis
+    private String deviceSignature;  // Base64 Ed25519 device signature
 
     public PaymentInstruction() {}
 
@@ -35,11 +41,31 @@ public class PaymentInstruction {
         this.signedAt = signedAt;
     }
 
+    @JsonIgnore
+    public byte[] getCanonicalData() {
+        String walletIdStr = walletAuthorization == null ? "" :
+                (walletAuthorization.getWalletId() == null ? "" : walletAuthorization.getWalletId());
+        String raw = String.join("|",
+                version == null ? "" : version,
+                transactionId == null ? "" : transactionId,
+                walletIdStr,
+                senderVpa == null ? "" : senderVpa,
+                receiverVpa == null ? "" : receiverVpa,
+                amount == null ? "" : amount.toPlainString(),
+                nonce == null ? "" : nonce,
+                signedAt == null ? "" : String.valueOf(signedAt)
+        );
+        return raw.getBytes(StandardCharsets.UTF_8);
+    }
+
     public String getVersion() { return version; }
     public void setVersion(String version) { this.version = version; }
 
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
+
+    public WalletAuthorization getWalletAuthorization() { return walletAuthorization; }
+    public void setWalletAuthorization(WalletAuthorization walletAuthorization) { this.walletAuthorization = walletAuthorization; }
 
     public String getSenderVpa() { return senderVpa; }
     public void setSenderVpa(String senderVpa) { this.senderVpa = senderVpa; }
@@ -58,4 +84,7 @@ public class PaymentInstruction {
 
     public Long getSignedAt() { return signedAt; }
     public void setSignedAt(Long signedAt) { this.signedAt = signedAt; }
+
+    public String getDeviceSignature() { return deviceSignature; }
+    public void setDeviceSignature(String deviceSignature) { this.deviceSignature = deviceSignature; }
 }
