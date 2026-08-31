@@ -80,6 +80,23 @@ public class ApiController {
 
     // -------------------------------------------------------------- mesh sim
 
+    @GetMapping("/mesh/strategy")
+    public Map<String, String> getStrategy() {
+        return Map.of("activeStrategy", mesh.getRoutingStrategyName());
+    }
+
+    @PostMapping("/mesh/strategy")
+    public Map<String, String> setStrategy(@RequestBody Map<String, String> body) {
+        String strategyName = body.get("strategy");
+        mesh.setRoutingStrategy(strategyName);
+        return Map.of("activeStrategy", mesh.getRoutingStrategyName(), "status", "success");
+    }
+
+    @GetMapping("/mesh/dtn-metrics")
+    public Map<String, Object> getDtnMetrics() {
+        return mesh.getDtnMetrics().getMetricsSummary();
+    }
+
     @GetMapping("/mesh/state")
     public Map<String, Object> meshState() {
         List<Map<String, Object>> deviceData = new ArrayList<>();
@@ -99,7 +116,9 @@ public class ApiController {
         Map<String, Object> result = new HashMap<>();
         result.put("devices", deviceData);
         result.put("idempotencyCacheSize", idempotency.size());
+        result.put("activeStrategy", mesh.getRoutingStrategyName());
         result.put("metrics", auditLogger.getMetricsSnapshot());
+        result.put("dtnMetrics", mesh.getDtnMetrics().getMetricsSummary());
         return result;
     }
 
@@ -128,7 +147,8 @@ public class ApiController {
         MeshSimulatorService.GossipResult r = mesh.gossipOnce();
         return Map.of(
                 "transfers", r.transfers(),
-                "deviceCounts", r.deviceCounts()
+                "deviceCounts", r.deviceCounts(),
+                "activeStrategy", mesh.getRoutingStrategyName()
         );
     }
 
@@ -139,7 +159,7 @@ public class ApiController {
         List<Map<String, Object>> results = new ArrayList<>();
         uploads.parallelStream().forEach(up -> {
             BridgeIngestionService.IngestResult r =
-                    bridge.ingest(up.packet(), up.bridgeNodeId(), 5 - up.packet().getTtl());
+                    bridge.ingest(up.packet(), up.bridgeNodeId(), Math.max(1, 5 - up.packet().getTtl()));
             synchronized (results) {
                 results.add(Map.of(
                         "bridgeNode", up.bridgeNodeId(),

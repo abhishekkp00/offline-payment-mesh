@@ -42,8 +42,8 @@ public class VirtualDevice {
     public double getRange() { return range; }
     public void setRange(double range) { this.range = range; }
 
-    public void hold(MeshPacket packet) {
-        bundleStore.store(packet);
+    public boolean hold(MeshPacket packet) {
+        return bundleStore.store(packet);
     }
 
     public Collection<MeshPacket> getHeldPackets() {
