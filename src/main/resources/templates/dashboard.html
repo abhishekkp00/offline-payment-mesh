@@ -53,6 +53,11 @@
             scrollbar-color: var(--border) transparent;
         }
 
+        a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+            outline: 2px solid var(--accent-blue);
+            outline-offset: 2px;
+        }
+
         body {
             font-family: var(--font-ui);
             margin: 0;
@@ -195,7 +200,7 @@
         }
         .btn-danger:hover { background: rgba(239, 68, 68, 0.3); }
 
-        /* ---------------------------------------------------- GRID LAYOUT ---------------------------------------------------- */
+        /* ---------------------------------------------------- GRID & RESPONSIVE BREAKPOINTS ---------------------------------------------------- */
         .grid-12 {
             display: grid;
             grid-template-columns: repeat(12, 1fr);
@@ -211,6 +216,24 @@
             .col-8 { grid-column: span 8; }
             .col-6 { grid-column: span 6; }
             .col-4 { grid-column: span 4; }
+        }
+
+        @media (max-width: 1024px) {
+            .top-bar-center { display: none; }
+            canvas { height: 320px; }
+        }
+
+        @media (max-width: 768px) {
+            .inspector-grid { grid-template-columns: 1fr; }
+            header.top-bar { flex-direction: column; align-items: flex-start; }
+            .top-bar-right { width: 100%; justify-content: flex-start; }
+            canvas { height: 280px; }
+        }
+
+        @media (max-width: 390px) {
+            .app-wrapper { padding: 4px; }
+            .panel { padding: 8px 10px; }
+            canvas { height: 240px; }
         }
 
         /* Purposeful Section Panels */
@@ -978,7 +1001,7 @@ async function flushBridges() {
 }
 
 async function runE2ESimulation() {
-    log('⚡ Executing Full End-to-End Production Simulation & Adversarial Test Suite...');
+    log('Executing E2E DTN Mesh Protocol & Adversarial Verification Suite...');
     updatePipeline('SIGNED');
     try {
         const res = await fetch('/api/demo/end-to-end-simulation', { method: 'POST' });
@@ -1035,11 +1058,11 @@ async function runE2ESimulation() {
             }
         });
 
-        log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
+        log('End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
         showToast('E2E Simulation & Adversarial Matrix Completed', 'success');
         await refresh(true);
     } catch (e) {
-        log('❌ Error running E2E Simulation: ' + e.message);
+        log('Error running E2E Simulation: ' + e.message);
         showToast('Simulation failed', 'warning');
     }
 }
