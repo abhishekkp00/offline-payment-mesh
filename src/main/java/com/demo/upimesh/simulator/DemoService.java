@@ -36,14 +36,15 @@ public class DemoService {
             accounts.save(new Account("bob@demo",   "Bob",   new BigDecimal("1000.00")));
             accounts.save(new Account("carol@demo", "Carol", new BigDecimal("2500.00")));
             accounts.save(new Account("dave@demo",  "Dave",  new BigDecimal("500.00")));
-
-            walletService.registerWallet("alice@demo", new BigDecimal("5000.00"));
-            walletService.registerWallet("bob@demo",   new BigDecimal("1000.00"));
-            walletService.registerWallet("carol@demo", new BigDecimal("2500.00"));
-            walletService.registerWallet("dave@demo",  new BigDecimal("500.00"));
-
-            log.info("Seeded 4 demo accounts and pre-funded wallets");
         }
+
+        // Ensure offline wallets are registered and funded for demo/test accounts
+        walletService.registerWallet("alice@demo", new BigDecimal("5000.00"));
+        walletService.registerWallet("bob@demo",   new BigDecimal("1000.00"));
+        walletService.registerWallet("carol@demo", new BigDecimal("2500.00"));
+        walletService.registerWallet("dave@demo",  new BigDecimal("500.00"));
+
+        log.info("Seeded demo accounts and registered pre-funded wallets");
     }
 
     public MeshPacket createPacket(String senderVpa, String receiverVpa, BigDecimal amount,
