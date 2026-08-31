@@ -36,7 +36,10 @@ class PacketAadSecurityTest {
 
     private MeshPacket buildValidPacket() throws Exception {
         walletService.issueWalletAuthorization("alice@demo", new BigDecimal("500.00"), 3600);
-        return demoService.createPacket("alice@demo", "bob@demo", new BigDecimal("50.00"), "1234", 5);
+        MeshPacket packet = demoService.createPacket("alice@demo", "bob@demo", new BigDecimal("50.00"), "1234", 5);
+        packet.setPacketId(UUID.randomUUID().toString());
+        packet.setTransactionId("tx-" + UUID.randomUUID());
+        return packet;
     }
 
     // 1. Modification of protocolVersion -> rejection
@@ -122,8 +125,13 @@ class PacketAadSecurityTest {
     @Test
     void testOversizedPacketRejected() throws Exception {
         MeshPacket packet = buildValidPacket();
+        packet.setPacketId(UUID.randomUUID().toString());
+        packet.setTransactionId("tx-oversized-" + UUID.randomUUID());
+        packet.setCreatedAt(System.currentTimeMillis() + 10000L);
         char[] hugePayload = new char[70000];
         Arrays.fill(hugePayload, 'A');
+        String uniqueSuffix = UUID.randomUUID().toString();
+        System.arraycopy(uniqueSuffix.toCharArray(), 0, hugePayload, 0, uniqueSuffix.length());
         packet.setCiphertext(new String(hugePayload));
 
         BridgeIngestionService.IngestResult result = bridge.ingest(packet, "bridge-1", 1);
@@ -135,7 +143,10 @@ class PacketAadSecurityTest {
     @Test
     void testMalformedBase64Rejected() throws Exception {
         MeshPacket packet = buildValidPacket();
-        packet.setCiphertext("!!!not-valid-base64!!!");
+        packet.setPacketId(UUID.randomUUID().toString());
+        packet.setTransactionId("tx-malformed-" + UUID.randomUUID());
+        packet.setCreatedAt(System.currentTimeMillis() + 20000L);
+        packet.setCiphertext("!!!not-valid-base64-" + UUID.randomUUID() + "!!!");
 
         BridgeIngestionService.IngestResult result = bridge.ingest(packet, "bridge-1", 1);
         assertEquals("INVALID", result.outcome());

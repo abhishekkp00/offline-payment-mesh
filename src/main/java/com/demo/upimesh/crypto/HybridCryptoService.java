@@ -60,7 +60,14 @@ public class HybridCryptoService {
 
     public void validateKeyId(String keyId) {
         if (keyId == null || !SUPPORTED_KEY_ID.equals(keyId)) {
-            throw new CryptographicValidationException("Unsupported key algorithm or key ID: " + keyId);
+            throw new CryptographicValidationException("unsupported_key_id: " + keyId);
+        }
+    }
+
+    public void validatePacketSize(String base64Ciphertext) {
+        if (base64Ciphertext != null && base64Ciphertext.length() > MAX_PACKET_SIZE_BYTES) {
+            throw new CryptographicValidationException("Packet exceeds maximum allowed size limit (" +
+                    base64Ciphertext.length() + " > " + MAX_PACKET_SIZE_BYTES + " bytes)");
         }
     }
 

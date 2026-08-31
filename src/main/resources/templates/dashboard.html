@@ -3,31 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPI Offline Mesh — Production Protocol Simulator</title>
-    <!-- Google Fonts -->
+    <title>UPI Offline Mesh — Decentralized Asynchronous Settlement</title>
+    
+    <!-- Expressive Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-color: #08090d; /* Deep Obsidian */
-            --card-bg: rgba(18, 20, 29, 0.75); /* Glass Obsidian */
-            --card-border: rgba(255, 255, 255, 0.08); /* Subtle Glass Border */
-            --border-hover: rgba(99, 102, 241, 0.35); /* Glowing Indigo Border */
-            --primary: #6366f1; /* Electric Indigo */
-            --primary-bg: rgba(99, 102, 241, 0.12);
-            --success: #10b981; /* Emerald */
-            --success-bg: rgba(16, 185, 129, 0.12);
-            --danger: #ef4444; /* Rose Red */
-            --danger-bg: rgba(239, 68, 68, 0.12);
-            --warning: #f59e0b; /* Amber */
-            --warning-bg: rgba(245, 158, 11, 0.12);
-            --accent-purple: #a855f7;
-            --text-main: #f8fafc; /* Slate 50 */
-            --text-muted: #94a3b8; /* Slate 400 */
-            --text-dark: #64748b; /* Slate 500 */
-            --canvas-bg: #0c0e17;
+            --bg-color: #06080e;
+            --surface-bg: #0d111c;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(6, 182, 212, 0.4);
+            --brand-primary: #06b6d4; /* Electric Cyan */
+            --brand-secondary: #3b82f6; /* Vibrant Blue */
+            --brand-accent: #10b981; /* Emerald */
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dark: #64748b;
+            --canvas-bg: #080b14;
         }
 
         * {
@@ -36,397 +31,252 @@
             scrollbar-color: rgba(255,255,255,0.1) transparent;
         }
 
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(99, 102, 241, 0.4);
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+            overflow-x: hidden;
         }
 
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 24px 16px;
-            background: var(--bg-color);
-            background-image: 
-                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.06) 0px, transparent 50%);
-            color: var(--text-main);
-            min-height: 100vh;
-            line-height: 1.5;
+        /* Ambient Hero Background Atmosphere */
+        .hero-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            min-height: 650px;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(6, 182, 212, 0.18), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 60%, rgba(59, 130, 246, 0.12), transparent),
+                radial-gradient(ellipse 50% 50% at 20% 80%, rgba(16, 185, 129, 0.08), transparent);
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container {
-            max-width: 1280px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 0 24px;
         }
 
-        /* Header Layout */
-        header {
+        /* ---------------------------------------------------- HERO SECTION ---------------------------------------------------- */
+        .hero-section {
+            min-height: 90vh;
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 24px;
-            position: relative;
-            gap: 20px;
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            padding: 20px 24px;
-            border-radius: 16px;
-        }
-
-        .header-title h1 {
-            margin: 0 0 8px 0;
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.025em;
-            color: #ffffff;
-            display: flex;
+            flex-direction: column;
+            justify-content: center;
             align-items: center;
-            gap: 12px;
+            text-align: center;
+            padding: 60px 0 40px 0;
+            position: relative;
         }
 
-        .header-title p {
-            margin: 0;
-            font-size: 0.9rem;
+        .hero-brand {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 4.8rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            background: linear-gradient(135deg, #ffffff 30%, #06b6d4 70%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0 0 16px 0;
+            animation: fadeInHero 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hero-headline {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(1.4rem, 3vw, 2.2rem);
+            font-weight: 800;
+            color: #ffffff;
+            margin: 0 0 16px 0;
+            letter-spacing: -0.02em;
+        }
+
+        .hero-subtext {
+            font-size: clamp(1rem, 1.5vw, 1.15rem);
             color: var(--text-muted);
-            max-width: 850px;
+            max-width: 720px;
+            margin: 0 0 32px 0;
             line-height: 1.6;
         }
 
-        .header-actions {
+        .hero-cta-group {
             display: flex;
+            gap: 16px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        /* Intentional Motion 1: Button Glow & Hover Lift */
+        .btn-primary {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            padding: 14px 32px;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
             align-items: center;
             gap: 10px;
-            flex-shrink: 0;
+            box-shadow: 0 10px 30px rgba(6, 182, 212, 0.3);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(6, 182, 212, 0.45);
         }
 
-        .live-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.25);
-            color: #34d399;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .live-dot {
-            width: 6px;
-            height: 6px;
-            background: #34d399;
-            border-radius: 50%;
-            box-shadow: 0 0 8px #34d399;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
-        .info-icon-btn {
+        .btn-secondary {
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 6px 14px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .info-icon-btn:hover {
-            background: var(--primary-bg);
-            border-color: var(--border-hover);
             color: #ffffff;
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 14px 28px;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
-
-        /* Stats Row */
-        .stats-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            border-radius: 14px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .stat-card:hover {
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
             border-color: var(--border-hover);
-            transform: translateY(-1px);
         }
 
-        .stat-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: var(--primary-bg);
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
+        /* ---------------------------------------------------- SECTIONS (One Job per section) ---------------------------------------------------- */
+        .section {
+            padding: 80px 0;
+            border-top: 1px solid var(--border-color);
         }
 
-        .stat-icon.success { background: var(--success-bg); color: var(--success); }
-        .stat-icon.warning { background: var(--warning-bg); color: var(--warning); }
-        .stat-icon.purple { background: rgba(168, 85, 247, 0.12); color: var(--accent-purple); }
-
-        .stat-info { display: flex; flex-direction: column; }
-
-        .stat-label {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 700;
+        .section-header {
+            margin-bottom: 32px;
         }
 
-        .stat-value {
-            font-size: 1.25rem;
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
             font-weight: 800;
             color: #ffffff;
-            margin-top: 2px;
+            margin: 0 0 8px 0;
+            letter-spacing: -0.02em;
         }
 
-        /* Glass Cards */
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(12px);
-            border: 1px solid var(--card-border);
-            border-radius: 16px;
-            padding: 20px;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .card-title {
-            margin: 0;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .card-subtitle {
-            margin: -4px 0 16px 0;
-            font-size: 0.8rem;
+        .section-desc {
+            font-size: 0.95rem;
             color: var(--text-muted);
-            line-height: 1.4;
+            margin: 0;
+            max-width: 680px;
         }
 
-        /* Layout Grid */
-        .grid { display: grid; gap: 20px; }
-        .grid-2 { grid-template-columns: 1fr; }
-        @media(min-width: 992px) {
-            .grid-2 { grid-template-columns: 1fr 1.1fr; }
+        /* Interactive Canvas Container */
+        .canvas-wrapper {
+            position: relative;
+            background: var(--canvas-bg);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            transition: border-color 0.3s ease;
         }
-
-        /* Controls Section */
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-
-        .control-panel {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-        }
-        .control-panel:hover {
+        .canvas-wrapper:hover {
             border-color: var(--border-hover);
         }
 
-        .panel-title {
-            margin: 0 0 12px 0;
-            font-size: 0.9rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        canvas {
+            display: block;
+            width: 100%;
+            height: 420px;
         }
 
-        .step-badge {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.75rem;
-            font-weight: 700;
+        /* Interactive Section Forms & Ledgers (Cards allowed ONLY for interactive elements) */
+        .interactive-box {
+            background: var(--surface-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
         }
 
-        .control-panel.success .step-badge { background: var(--success-bg); color: var(--success); }
-        .control-panel.warning .step-badge { background: var(--warning-bg); color: var(--warning); }
-        .control-panel.info .step-badge { background: var(--primary-bg); color: var(--primary); }
-
-        /* Form Controls */
-        .form-group {
-            margin-bottom: 10px;
+        .grid-3 {
             display: grid;
-            grid-template-columns: 85px 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media(min-width: 992px) {
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 90px 1fr;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
         }
 
         label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
             font-weight: 600;
         }
 
         input, select {
             width: 100%;
-            background: #0f111a;
-            border: 1px solid var(--card-border);
+            background: #06080e;
+            border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 7px 10px;
+            padding: 9px 12px;
             color: #ffffff;
             font-family: inherit;
-            font-size: 0.8rem;
-            outline: none;
-            transition: border-color 0.15s ease;
-        }
-
-        input:focus, select:focus {
-            border-color: var(--primary);
-        }
-
-        /* Buttons */
-        button {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            color: #ffffff;
-            border: 1px solid var(--card-border);
-            padding: 9px 16px;
-            border-radius: 8px;
-            cursor: pointer;
             font-size: 0.85rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s ease;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+        input:focus, select:focus {
+            border-color: var(--brand-primary);
         }
 
-        button:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--border-hover);
-        }
-
-        button.success {
-            background: linear-gradient(135deg, #059669 0%, #10b981 100%);
-            border: none;
-        }
-        button.success:hover { opacity: 0.9; }
-
-        button.warning {
-            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
-            border: none;
-        }
-        button.warning:hover { opacity: 0.9; }
-
-        button.primary {
-            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
-            border: none;
-        }
-        button.primary:hover { opacity: 0.9; }
-
-        button.danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
-        }
-        button.danger:hover {
-            background: rgba(239, 68, 68, 0.25);
-        }
-
-        /* Canvas Panel */
-        .canvas-container {
-            position: relative;
-            background: var(--canvas-bg);
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            overflow: hidden;
-            height: 380px;
-        }
-
-        canvas { display: block; width: 100%; height: 100%; }
-
-        /* Table Styling */
-        .table-wrapper {
+        /* Tables */
+        .table-container {
             overflow-x: auto;
-            max-height: 240px;
-            border-radius: 8px;
-            border: 1px solid var(--card-border);
-            background: #090a0f;
+            max-height: 260px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: #06080e;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.8rem;
+            font-size: 0.82rem;
             text-align: left;
         }
 
         th, td {
-            padding: 10px 14px;
-            border-bottom: 1px solid var(--card-border);
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
         }
 
         th {
-            background: #0f111a;
+            background: #0d111c;
             color: var(--text-muted);
             font-weight: 700;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             position: sticky;
@@ -434,425 +284,259 @@
             z-index: 10;
         }
 
-        tr:hover td { background: rgba(255, 255, 255, 0.02); }
-
         .balance {
             font-family: 'JetBrains Mono', monospace;
-            color: var(--success);
+            color: var(--brand-accent);
             font-weight: 600;
         }
 
-        /* Badges */
         .badge {
             display: inline-flex;
             align-items: center;
-            font-size: 0.65rem;
-            padding: 2px 8px;
-            border-radius: 4px;
+            font-size: 0.68rem;
+            padding: 3px 8px;
+            border-radius: 6px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
+        .status-SETTLED { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+        .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
 
-        .status-SETTLED {
-            background: rgba(16, 185, 129, 0.12);
-            color: #34d399;
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .status-REJECTED, .status-INVALID, .status-CONFLICTED {
-            background: rgba(239, 68, 68, 0.12);
-            color: #f87171;
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .status-DUPLICATE_DROPPED {
-            background: rgba(245, 158, 11, 0.12);
-            color: #fbbf24;
-            border: 1px solid rgba(245, 158, 11, 0.3);
-        }
-
-        /* Terminal Console */
-        .terminal-header {
-            background: #0f111a;
-            border-top-left-radius: 12px;
-            border-top-right-radius: 12px;
-            border: 1px solid var(--card-border);
-            border-bottom: none;
-            padding: 10px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 24px;
-        }
-
-        .terminal-actions { display: flex; gap: 6px; }
-
-        .terminal-btn {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--card-border);
-            border-radius: 4px;
-            padding: 4px 10px;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            cursor: pointer;
-            width: auto;
-        }
-
-        .terminal-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-        }
-
+        /* Console Log */
         #log {
-            background: #07080c;
+            background: #040508;
             color: #94a3b8;
-            padding: 14px 16px;
-            border-bottom-left-radius: 12px;
-            border-bottom-right-radius: 12px;
-            border: 1px solid var(--card-border);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             font-family: 'JetBrains Mono', monospace;
-            font-size: 0.72rem;
-            max-height: 180px;
+            font-size: 0.75rem;
+            max-height: 200px;
             overflow-y: auto;
             white-space: pre-wrap;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
-        /* --- TOUR OVERLAY & ENHANCED TOOLTIP MODAL --- */
+        /* ---------------------------------------------------- ONBOARDING TOUR MODAL ---------------------------------------------------- */
         .tour-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 5, 8, 0.75);
+            background: rgba(4, 6, 14, 0.8);
             z-index: 1000;
             display: none;
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(6px);
         }
 
         .tour-card {
             position: absolute;
-            background: #0f111a;
-            border: 1px solid rgba(99, 102, 241, 0.35);
-            border-radius: 16px;
+            background: #0d111c;
+            border: 1px solid var(--border-hover);
+            border-radius: 18px;
             padding: 24px;
-            width: 360px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(99, 102, 241, 0.15);
+            width: 380px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
             z-index: 1001;
             display: none;
         }
 
-        .tour-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-        }
-
-        .tour-close-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 0;
-            width: auto;
-        }
-        .tour-close-btn:hover { color: #ffffff; }
-
         .tour-highlight {
             position: relative;
             z-index: 1002 !important;
-            outline: 2px solid var(--primary) !important;
-            outline-offset: 4px;
-            box-shadow: 0 0 25px rgba(99, 102, 241, 0.4) !important;
+            outline: 2px solid var(--brand-primary) !important;
+            outline-offset: 6px;
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.4) !important;
+        }
+
+        /* Keyframe Motions */
+        @keyframes fadeInHero {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
+
+<div class="hero-background"></div>
+
 <div class="container">
     
-    <!-- Top Header -->
-    <header>
-        <div class="header-title">
-            <h1>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
-                UPI Offline Mesh Protocol Simulator
-            </h1>
-            <p>
-                Demonstrating cryptographically authenticated pre-funded offline wallets routed over Delay/Disruption Tolerant Networks (DTN) with Redis distributed idempotency & PostgreSQL durable settlement persistence.
-            </p>
-        </div>
-        <div class="header-actions">
-            <span class="live-pill"><span class="live-dot"></span> SIMULATOR ACTIVE</span>
-            <button onclick="startTour()" class="info-icon-btn" title="Start Tour">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                Guided Tour
-            </button>
-        </div>
-    </header>
-
-    <!-- Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-card">
-            <div class="stat-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-            </div>
-            <div class="stat-info">
-                <span class="stat-label">Active Mesh Nodes</span>
-                <span class="stat-value" id="stat-nodes-count">-</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon success">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            </div>
-            <div class="stat-info">
-                <span class="stat-label">Settled Ledgers</span>
-                <span class="stat-value" id="stat-settled-count">-</span>
-            </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon warning">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="M12 6v6l4 2"/></svg>
-            </div>
-            <div class="stat-info">
-                <span class="stat-label">Redis Locks</span>
-                <span class="stat-value" id="stat-cache-count">-</span>
-            </div>
-        </div>
-        <div class="stat-card" style="cursor: pointer;" onclick="window.open('/actuator/prometheus', '_blank')">
-            <div class="stat-icon purple">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            </div>
-            <div class="stat-info">
-                <span class="stat-label">Prometheus Export</span>
-                <span class="stat-value" style="font-size: 0.85rem; color: #a855f7;">GET /actuator ↗</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- E2E Hero Action Card -->
-    <div id="e2e-card-trigger" class="card" style="margin-bottom: 20px; border-color: rgba(99, 102, 241, 0.3); background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(168, 85, 247, 0.05) 100%);">
-        <div style="display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap;">
-            <div>
-                <h3 style="margin: 0; font-size: 1.15rem; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-                    ⚡ Run End-to-End Production Simulation & Adversarial Suite
-                </h3>
-                <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">
-                    Executes 3-phase flow (Online Auth ➔ Offline Mesh ➔ Server Settlement) and tests 7 adversarial scenarios (Replay, Tampering, Forged Signatures, Bridge Failure, Double Spend).
-                </p>
-            </div>
-            <button class="primary" onclick="runE2ESimulation()" style="width: auto; padding: 11px 24px; font-weight: 700; color: white;">
+    <!-- HERO SECTION (Strict Hero Budget & One Unified Composition) -->
+    <section class="hero-section" id="hero">
+        <h1 class="hero-brand">UPI OFFLINE MESH</h1>
+        <h2 class="hero-headline">Pay Anywhere. Zero Internet Required.</h2>
+        <p class="hero-subtext">
+            A cryptographically authenticated pre-funded offline wallet protocol. Payments hop asynchronously over peer Bluetooth & Wi-Fi meshes to reach 4G gateway bridges for central ledger settlement.
+        </p>
+        <div class="hero-cta-group">
+            <button class="btn-primary" onclick="runE2ESimulation()">
                 ▶ Run End-to-End Simulation
             </button>
+            <button class="btn-secondary" onclick="startTour()">
+                Interactive Guided Tour
+            </button>
         </div>
+    </section>
 
-        <!-- E2E Telemetry Container -->
-        <div id="e2e-telemetry-card" style="display: none; margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 20px;">
-            <div class="card-header" style="margin-bottom: 12px;">
-                <h4 class="card-title" style="color: #818cf8; font-size: 1rem;">📊 End-to-End Transaction Telemetry Report</h4>
-                <span class="badge status-SETTLED" id="e2e-settlement-state">SETTLED</span>
+    <!-- SECTION 1: REAL-TIME MESH MAP (One Job: Physical Node Topology) -->
+    <section class="section" id="mesh-visualizer">
+        <div class="section-header">
+            <h3 class="section-title">Interactive Mesh Network Topology</h3>
+            <p class="section-desc">Drag mobile nodes to adjust radio coverage range. Move nodes carrying payment packets toward the 4G Cell Gateway zone to trigger internet uplink settlement.</p>
+        </div>
+        <div class="canvas-wrapper">
+            <canvas id="meshCanvas" width="1152" height="420"></canvas>
+        </div>
+    </section>
+
+    <!-- SECTION 2: END-TO-END TELEMETRY REPORT (One Job: Verification Telemetry) -->
+    <section class="section" id="telemetry-section">
+        <div class="section-header">
+            <h3 class="section-title">End-to-End Production Telemetry</h3>
+            <p class="section-desc">Real-time outcome of 3-phase payment execution & 7 adversarial test cases (Replay, Tampering, Forged Signatures, Bridge Failure, Double Spending).</p>
+        </div>
+        
+        <div id="e2e-telemetry-container" class="interactive-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h4 style="margin: 0; font-size: 1rem; color: var(--brand-primary);">📊 Simulation Telemetry Result</h4>
+                <span class="badge status-SETTLED" id="e2e-settlement-state">RUN SIMULATION TO GENERATE</span>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; background: #07080c; padding: 14px; border-radius: 10px; border: 1px solid var(--card-border); font-size: 0.8rem;">
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; background: #06080e; padding: 16px; border-radius: 12px; border: 1px solid var(--border-color); font-size: 0.82rem; margin-bottom: 20px;">
                 <div><span style="color: var(--text-muted);">Tx ID:</span> <strong id="e2e-tx-id" style="color: #ffffff;">-</strong></div>
                 <div><span style="color: var(--text-muted);">Wallet ID:</span> <strong id="e2e-wallet-id" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Sender ➔ Receiver:</span> <strong id="e2e-route" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Amount:</span> <strong id="e2e-amount" style="color: var(--success);">-</strong></div>
-                <div><span style="color: var(--text-muted);">DTN Hops (Copies):</span> <strong id="e2e-hops" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Routing Algorithm:</span> <strong id="e2e-routing" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Route:</span> <strong id="e2e-route" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Amount:</span> <strong id="e2e-amount" style="color: var(--brand-accent);">-</strong></div>
+                <div><span style="color: var(--text-muted);">DTN Hops:</span> <strong id="e2e-hops" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Algorithm:</span> <strong id="e2e-routing" style="color: #ffffff;">-</strong></div>
                 <div><span style="color: var(--text-muted);">Bridge Node:</span> <strong id="e2e-bridge" style="color: #ffffff;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Security Verification:</span> <strong id="e2e-security" style="color: #34d399;">-</strong></div>
-                <div><span style="color: var(--text-muted);">Idempotency Result:</span> <strong id="e2e-idempotency" style="color: #fbbf24;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Security Check:</span> <strong id="e2e-security" style="color: #34d399;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Idempotency:</span> <strong id="e2e-idempotency" style="color: #fbbf24;">-</strong></div>
                 <div><span style="color: var(--text-muted);">Settlement Latency:</span> <strong id="e2e-latency" style="color: #ffffff;">-</strong></div>
             </div>
-            <h5 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ffffff;">Adversarial Test Suite Outcomes:</h5>
-            <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 8px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;"></div>
-        </div>
-    </div>
 
-    <!-- Controls panel -->
-    <div class="card" style="margin-bottom: 20px;">
-        <div class="controls-grid">
-            
-            <!-- Step 1: Create/Inject Payload -->
-            <div class="control-panel success">
-                <div>
-                    <h4 class="panel-title" style="color: #34d399;">
-                        <span class="step-badge">1</span>
-                        Transaction Setup
-                    </h4>
-                    <div class="form-group">
-                        <label>Sender:</label>
-                        <select id="senderVpa">
-                            <option>alice@demo</option>
-                            <option>bob@demo</option>
-                            <option>carol@demo</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Recipient:</label>
-                        <select id="receiverVpa">
-                            <option>bob@demo</option>
-                            <option>carol@demo</option>
-                            <option>alice@demo</option>
-                            <option>dave@demo</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Amount:</label>
-                        <input type="number" id="amount" value="500">
-                    </div>
-                    <div class="form-group">
-                        <label>Wallet PIN:</label>
-                        <input type="password" id="pin" value="1234" maxlength="4" style="letter-spacing: 0.3em;">
-                    </div>
-                    <div class="form-group">
-                        <label>Start Node:</label>
-                        <select id="injectDevice"></select>
-                    </div>
+            <h5 style="margin: 0 0 12px 0; font-size: 0.85rem; color: #ffffff;">Adversarial Test Suite Outcomes:</h5>
+            <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 10px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;">
+                <div style="background: #06080e; padding: 10px; border-radius: 8px; color: var(--text-dark);">Click "Run End-to-End Simulation" above to execute all 7 failure tests.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: INTERACTIVE CONTROLS & LEDGERS (One Job: User Interaction) -->
+    <section class="section" id="controls-section">
+        <div class="section-header">
+            <h3 class="section-title">Manual Transaction Controls & Ledgers</h3>
+            <p class="section-desc">Create custom offline transactions, step through wireless gossip rounds, and inspect real-time database balance updates.</p>
+        </div>
+
+        <div class="grid-3" style="margin-bottom: 24px;">
+            <!-- Step 1 -->
+            <div class="interactive-box">
+                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: var(--brand-accent);">1. Offline Payment Sign</h4>
+                <div class="form-group">
+                    <label>Sender:</label>
+                    <select id="senderVpa"><option>alice@demo</option><option>bob@demo</option><option>carol@demo</option></select>
                 </div>
-                <button class="success" onclick="sendPacket()" style="margin-top: 12px; color: white;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                    Sign & Inject
+                <div class="form-group">
+                    <label>Recipient:</label>
+                    <select id="receiverVpa"><option>bob@demo</option><option>carol@demo</option><option>alice@demo</option><option>dave@demo</option></select>
+                </div>
+                <div class="form-group">
+                    <label>Amount:</label>
+                    <input type="number" id="amount" value="250">
+                </div>
+                <div class="form-group">
+                    <label>PIN:</label>
+                    <input type="password" id="pin" value="1234" maxlength="4" style="letter-spacing: 0.3em;">
+                </div>
+                <div class="form-group">
+                    <label>Start Node:</label>
+                    <select id="injectDevice"></select>
+                </div>
+                <button class="btn-primary" onclick="sendPacket()" style="width: 100%; border-radius: 8px; padding: 10px; margin-top: 10px;">
+                    Sign & Inject Packet
                 </button>
             </div>
 
-            <!-- Step 2: Mesh Gossip Routing -->
-            <div class="control-panel warning">
-                <div style="margin-bottom: 16px;">
-                    <h4 class="panel-title" style="color: #fbbf24;">
-                        <span class="step-badge">2</span>
-                        Mesh Hop Routing
-                    </h4>
-                    <p class="card-subtitle" style="margin-top: 4px;">
-                        Forces active nodes to check physical proximity and replicate packet logs via store-carry-forward gossip exchanges.
-                    </p>
-                </div>
-                <button class="warning" onclick="gossip()" style="color: white;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+            <!-- Step 2 -->
+            <div class="interactive-box">
+                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #fbbf24;">2. Mesh Gossip Hop</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Executes store-carry-forward replication between nodes physically within radio transmission range.
+                </p>
+                <button class="btn-secondary" onclick="gossip()" style="width: 100%; border-radius: 8px; padding: 10px;">
                     Execute Gossip Round
                 </button>
             </div>
 
-            <!-- Step 3: Gateway settlement -->
-            <div class="control-panel info">
-                <div style="margin-bottom: 16px;">
-                    <h4 class="panel-title" style="color: #818cf8;">
-                        <span class="step-badge">3</span>
-                        Uplink Settlement
-                    </h4>
-                    <p class="card-subtitle" style="margin-top: 4px;">
-                        Prompts bridge nodes connected to gateway cells to ingest pending packets for backend idempotency & ledger settlement.
-                    </p>
-                </div>
-                <button class="primary" onclick="flushBridges()" style="color: white;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+            <!-- Step 3 -->
+            <div class="interactive-box">
+                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: var(--brand-secondary);">3. Gateway Uplink</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 20px;">
+                    Prompts gateway bridge nodes to ingest buffered packets to central server for idempotency & settlement.
+                </p>
+                <button class="btn-primary" onclick="flushBridges()" style="width: 100%; border-radius: 8px; padding: 10px; background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);">
                     Flush Gateway Uplink
                 </button>
             </div>
-
         </div>
 
-        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
-            <button class="danger" onclick="resetMesh()" style="width: auto; padding: 6px 14px; font-size: 0.75rem; color: white;">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                Reset Environment
-            </button>
-        </div>
-    </div>
-
-    <!-- Interactive Canvas Visualizer -->
-    <div class="card" style="margin-bottom: 20px;">
-        <div class="card-header">
-            <h3 class="card-title">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--primary);"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-                Interactive Mesh Node Network Map
-            </h3>
-            <span class="badge" style="background: rgba(255, 255, 255, 0.05); color: var(--text-muted); border: 1px solid var(--card-border);">Drag nodes to sync physical range positions</span>
-        </div>
-        <div class="canvas-container">
-            <canvas id="meshCanvas" width="1240" height="380"></canvas>
-        </div>
-    </div>
-
-    <!-- Balances and Transactions -->
-    <div class="grid grid-2">
-        
-        <!-- Account Ledgers -->
-        <div class="card" id="ledgers-card">
-            <div class="card-header">
-                <h3 class="card-title" style="color: var(--success);">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5"/></svg>
-                    Simulated User Wallets
-                </h3>
+        <!-- Ledgers side-by-side -->
+        <div class="grid-2">
+            <div class="interactive-box" id="ledgers-card">
+                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #ffffff;">User Wallet Balances</h4>
+                <div class="table-container">
+                    <table id="accounts-table">
+                        <thead><tr><th>VPA Address</th><th>Holder Name</th><th>Balance</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="table-wrapper">
-                <table id="accounts-table">
-                    <thead>
-                        <tr>
-                            <th>VPA Address</th>
-                            <th>Account Holder</th>
-                            <th>Current Balance</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+
+            <div class="interactive-box">
+                <h4 style="margin: 0 0 14px 0; font-size: 0.95rem; color: #ffffff;">Settled Transaction Ledger</h4>
+                <div class="table-container">
+                    <table id="tx-table">
+                        <thead><tr><th>ID</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
+    </section>
 
-        <!-- Ledger settled records -->
-        <div class="card">
-            <div class="card-header">
-                <h3 class="card-title" style="color: var(--primary);">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    Settled Transaction Ledger
-                </h3>
+    <!-- SECTION 4: ACTIVITY LOGS (One Job: Telemetry Logs) -->
+    <section class="section" id="logs-section">
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h3 class="section-title">System Activity Logs</h3>
+                <p class="section-desc">Live audit trail of cryptographic packet signatures, DTN gossip relays, and server ingestion states.</p>
             </div>
-            <div class="table-wrapper">
-                <table id="tx-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Sender</th>
-                            <th>Receiver</th>
-                            <th>Value</th>
-                            <th>Status</th>
-                            <th>Bridge Node (Hops)</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+            <div>
+                <button class="btn-secondary" onclick="clearLogs()" style="padding: 6px 14px; font-size: 0.75rem;">Clear</button>
+                <button class="btn-secondary" onclick="copyLogs()" style="padding: 6px 14px; font-size: 0.75rem;">Copy</button>
             </div>
         </div>
-    </div>
+        <div id="log"></div>
+    </section>
 
-    <!-- Log Console -->
-    <div class="terminal-header" id="logs-header">
-        <span style="font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; color: var(--text-muted); text-transform: uppercase;">Simulation Activity Logs</span>
-        <div class="terminal-actions">
-            <button class="terminal-btn" onclick="clearLogs()">Clear</button>
-            <button class="terminal-btn" onclick="copyLogs()">Copy</button>
-        </div>
-    </div>
-    <div id="log"></div>
 </div>
 
-<!-- ONBOARDING TOUR MODAL STRUCTURE WITH SKIP OPTION -->
+<!-- ONBOARDING TOUR MODAL (WITH SKIP DEMO BUTTON) -->
 <div id="tour-overlay" class="tour-overlay" onclick="endTour()"></div>
 <div id="tour-card" class="tour-card">
-    <div class="tour-header">
-        <h4 id="tour-title" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">Step Title</h4>
-        <button class="tour-close-btn" onclick="endTour()" title="Close Tour">✕</button>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h4 id="tour-title" style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.1rem; font-weight: 800; color: #ffffff;">Step Title</h4>
+        <button onclick="endTour()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">✕</button>
     </div>
     <p id="tour-body" style="margin: 0 0 20px 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;"></p>
-    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--card-border); padding-top: 14px;">
-        <span id="tour-progress" style="font-size: 0.75rem; color: var(--text-dark); font-weight: 700;">1 / 6</span>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color); padding-top: 14px;">
+        <span id="tour-progress" style="font-size: 0.75rem; color: var(--text-dark); font-weight: 700;">1 / 5</span>
         <div style="display: flex; gap: 8px; align-items: center;">
-            <button id="tour-skip" class="terminal-btn" style="color: #f87171; border-color: rgba(239,68,68,0.3); font-weight: 700;" onclick="endTour()">Skip Tour</button>
-            <button id="tour-prev" class="terminal-btn" style="width: auto; padding: 5px 12px; font-size: 0.75rem;" onclick="prevTourStep()">Back</button>
-            <button id="tour-next" class="primary" style="width: auto; padding: 5px 16px; font-size: 0.75rem; color: white;" onclick="nextTourStep()">Next</button>
+            <button class="btn-secondary" style="color: #f87171; border-color: rgba(239,68,68,0.3); padding: 6px 12px; font-size: 0.75rem;" onclick="endTour()">Skip Demo</button>
+            <button id="tour-prev" class="btn-secondary" style="padding: 6px 12px; font-size: 0.75rem;" onclick="prevTourStep()">Back</button>
+            <button id="tour-next" class="btn-primary" style="padding: 6px 16px; font-size: 0.75rem;" onclick="nextTourStep()">Next</button>
         </div>
     </div>
 </div>
@@ -871,7 +555,7 @@ let activeRings = [];
 function log(msg) {
     const logDiv = document.getElementById('log');
     const timeStr = new Date().toTimeString().split(' ')[0];
-    logDiv.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-arrow">➔</span> ${msg}\n` + logDiv.innerHTML;
+    logDiv.innerHTML = `<span style="color: var(--text-dark);">[${timeStr}]</span> <span style="color: var(--brand-primary);">➔</span> ${msg}\n` + logDiv.innerHTML;
 }
 
 function clearLogs() { document.getElementById('log').innerHTML = ''; }
@@ -884,9 +568,6 @@ async function refresh(fullReload = false) {
     try {
         const res = await fetch('/api/mesh/state');
         const data = await res.json();
-        
-        document.getElementById('stat-nodes-count').innerText = data.devices ? data.devices.length : 0;
-        document.getElementById('stat-cache-count').innerText = data.idempotencyCacheSize || 0;
         
         if (fullReload && data.devices) {
             devices = data.devices;
@@ -904,7 +585,6 @@ async function refresh(fullReload = false) {
         
         const txRes = await fetch('/api/transactions');
         const txs = await txRes.json();
-        document.getElementById('stat-settled-count').innerText = txs ? txs.filter(t => t.state === 'SETTLED').length : 0;
         renderTransactions(txs);
 
         const accRes = await fetch('/api/accounts');
@@ -934,7 +614,7 @@ function renderAccounts(accounts) {
     accounts.forEach(a => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td style="font-family: 'JetBrains Mono', monospace; color: var(--primary);">${a.vpa}</td>
+            <td style="font-family: 'JetBrains Mono', monospace; color: var(--brand-primary);">${a.vpa}</td>
             <td><strong>${a.accountHolderName}</strong></td>
             <td class="balance">₹${Number(a.balance).toFixed(2)}</td>
         `;
@@ -954,7 +634,6 @@ function renderTransactions(txs) {
             <td>${t.receiverVpa}</td>
             <td class="balance">₹${Number(t.amount).toFixed(2)}</td>
             <td><span class="badge status-${t.state}">${t.state}</span></td>
-            <td>${t.bridgeNodeId || 'N/A'} (${t.hopCount} hops)</td>
         `;
         tbody.appendChild(tr);
     });
@@ -974,7 +653,7 @@ async function sendPacket() {
             body: JSON.stringify({ senderVpa, receiverVpa, amount, pin, startDevice, ttl: 5 })
         });
         const data = await res.json();
-        log(`Packet created & signed by ${senderVpa}! Ciphertext: <code>${data.ciphertextPreview}</code> injected into node <strong>${startDevice}</strong>`);
+        log(`Packet created & signed by ${senderVpa}! Ciphertext injected into node <strong>${startDevice}</strong>`);
         
         const dev = devices.find(d => d.deviceId === startDevice);
         if (dev) {
@@ -1004,7 +683,7 @@ async function gossip() {
                 }
             });
         } else {
-            log('Gossip round executed: No nodes in radio proximity or no missing packets.');
+            log('Gossip round executed: No nodes in radio proximity.');
         }
         await refresh(false);
     } catch (e) {
@@ -1018,7 +697,7 @@ async function flushBridges() {
         const data = await res.json();
         if (data.results && data.results.length > 0) {
             data.results.forEach(r => {
-                log(`Gateway Uplink Ingestion [${r.bridgeNode}]: Packet #${r.packetId} ➔ <strong>${r.outcome}</strong> ${r.reason ? '(' + r.reason + ')' : ''}`);
+                log(`Gateway Uplink [${r.bridgeNode}]: Packet #${r.packetId} ➔ <strong>${r.outcome}</strong> ${r.reason ? '(' + r.reason + ')' : ''}`);
             });
         } else {
             log('Gateway Uplink executed: No pending packets at bridge nodes.');
@@ -1035,7 +714,6 @@ async function runE2ESimulation() {
         const res = await fetch('/api/demo/end-to-end-simulation', { method: 'POST' });
         const data = await res.json();
 
-        document.getElementById('e2e-telemetry-card').style.display = 'block';
         document.getElementById('e2e-tx-id').innerText = data.transactionId || '-';
         document.getElementById('e2e-wallet-id').innerText = data.walletId || '-';
         document.getElementById('e2e-route').innerText = (data.sender || '') + ' ➔ ' + (data.receiver || '');
@@ -1053,7 +731,7 @@ async function runE2ESimulation() {
         if (data.demonstrationScenarios) {
             Object.entries(data.demonstrationScenarios).forEach(([name, result]) => {
                 const div = document.createElement('div');
-                div.style.background = '#090a0f';
+                div.style.background = '#06080e';
                 div.style.padding = '8px 12px';
                 div.style.borderRadius = '6px';
                 div.style.border = '1px solid rgba(255,255,255,0.08)';
@@ -1064,6 +742,8 @@ async function runE2ESimulation() {
 
         log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
         await refresh(true);
+
+        document.getElementById('telemetry-section').scrollIntoView({ behavior: 'smooth' });
     } catch (e) {
         log('❌ Error running E2E Simulation: ' + e.message);
     }
@@ -1071,7 +751,7 @@ async function runE2ESimulation() {
 
 async function resetMesh() {
     await fetch('/api/mesh/reset', { method: 'POST' });
-    log('Simulation environment reset. Clear seen caches, reset node locations and reseed wallets.');
+    log('Simulation environment reset.');
     activeParticles = [];
     activeRings = [];
     await refresh(true);
@@ -1082,19 +762,19 @@ function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     // Tower background
-    ctx.fillStyle = 'rgba(99, 102, 241, 0.03)';
-    ctx.fillRect(800, 0, 440, canvas.height);
-    ctx.strokeStyle = 'rgba(99, 102, 241, 0.15)';
+    ctx.fillStyle = 'rgba(6, 182, 212, 0.03)';
+    ctx.fillRect(750, 0, 410, canvas.height);
+    ctx.strokeStyle = 'rgba(6, 182, 212, 0.15)';
     ctx.setLineDash([5, 5]);
     ctx.beginPath();
-    ctx.moveTo(800, 0);
-    ctx.lineTo(800, canvas.height);
+    ctx.moveTo(750, 0);
+    ctx.lineTo(750, canvas.height);
     ctx.stroke();
     ctx.setLineDash([]);
 
     ctx.fillStyle = 'rgba(255,255,255,0.3)';
     ctx.font = '10px "Plus Jakarta Sans"';
-    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", 810, 20);
+    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", 760, 20);
 
     // Connectivity lines
     for (let i = 0; i < devices.length; i++) {
@@ -1105,7 +785,7 @@ function animate() {
             const dy = d1.y - d2.y;
             const dist = Math.sqrt(dx * dx + dy * dy);
             if (dist <= d1.range || dist <= d2.range) {
-                ctx.strokeStyle = 'rgba(99, 102, 241, 0.18)';
+                ctx.strokeStyle = 'rgba(6, 182, 212, 0.18)';
                 ctx.lineWidth = 1;
                 ctx.beginPath();
                 ctx.moveTo(d1.x, d1.y);
@@ -1117,14 +797,14 @@ function animate() {
 
     // Devices
     devices.forEach(d => {
-        ctx.strokeStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.12)' : 'rgba(99, 102, 241, 0.08)';
-        ctx.fillStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.03)' : 'rgba(99, 102, 241, 0.02)';
+        ctx.strokeStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.15)' : 'rgba(6, 182, 212, 0.1)';
+        ctx.fillStyle = d.hasInternet ? 'rgba(16, 185, 129, 0.03)' : 'rgba(6, 182, 212, 0.02)';
         ctx.beginPath();
         ctx.arc(d.x, d.y, d.range, 0, Math.PI * 2);
         ctx.fill();
         ctx.stroke();
 
-        ctx.fillStyle = d.hasInternet ? '#10b981' : (d.packetCount > 0 ? '#f59e0b' : '#6366f1');
+        ctx.fillStyle = d.hasInternet ? '#10b981' : (d.packetCount > 0 ? '#f59e0b' : '#06b6d4');
         ctx.beginPath();
         ctx.arc(d.x, d.y, 14, 0, Math.PI * 2);
         ctx.fill();
@@ -1186,7 +866,7 @@ canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         draggingDevice.x = Math.max(20, Math.min(canvas.width - 20, e.clientX - rect.left - dragOffsetX));
         draggingDevice.y = Math.max(20, Math.min(canvas.height - 20, e.clientY - rect.top - dragOffsetY));
-        draggingDevice.hasInternet = draggingDevice.x >= 800;
+        draggingDevice.hasInternet = draggingDevice.x >= 750;
     }
 });
 
@@ -1201,37 +881,32 @@ canvas.addEventListener('mouseup', () => {
     }
 });
 
-// ONBOARDING TOUR MODAL LOGIC WITH SKIP OPTION
+// ONBOARDING TOUR MODAL LOGIC WITH SKIP DEMO OPTION
 const tourSteps = [
     {
-        target: "header",
-        title: "📡 Welcome to UPI Offline Mesh",
-        content: "A peer-to-peer asynchronous transaction system. Offline phones create & sign payments without internet, hopping packets over local devices (Bluetooth/Wi-Fi Mesh) to reach an internet gateway bridge for central ledger settlement."
+        target: "#hero",
+        title: "📡 UPI Offline Mesh Protocol",
+        content: "A peer-to-peer transaction system allowing offline phones to execute signed payments without internet, hopping packets over local Bluetooth & Wi-Fi meshes to reach 4G gateway bridges for central server settlement."
     },
     {
-        target: "#e2e-card-trigger",
-        title: "⚡ 3-Phase Lifecycle & End-to-End Simulation",
-        content: "Click <strong>Run End-to-End Simulation</strong> to execute the full 3-phase flow (Online Auth ➔ Offline Mesh ➔ Server Settlement) and test 7 failure/adversarial cases automatically."
+        target: "#mesh-visualizer",
+        title: "🗺️ Interactive Mesh Topology",
+        content: "Drag mobile nodes on the canvas map to change radio coverage range. Move nodes carrying payment packets into the 4G Cell Gateway zone to establish active internet uplink!"
     },
     {
-        target: ".control-panel.success",
-        title: "✍️ Step 1: Transaction Setup",
-        content: "Configure a payment instruction (Sender, Recipient, Amount, and PIN). Click <strong>Sign & Inject</strong> to encrypt it with AES-256-GCM + AAD outer metadata binding signed by the client's Ed25519 key."
+        target: "#telemetry-section",
+        title: "⚡ End-to-End Simulation & Adversarial Suite",
+        content: "Click <strong>Run End-to-End Simulation</strong> to execute the full 3-phase lifecycle and automatically verify 7 adversarial failure cases (Replay, Tampering, Forged Signatures, Bridge Failure, Double Spending)."
     },
     {
-        target: ".control-panel.warning",
-        title: "🔄 Step 2: Wireless Mesh Hop",
-        content: "Click <strong>Execute Gossip Round</strong> to simulate Bluetooth/Wi-Fi store-carry-forward packet replication to all peer nodes within transmission range."
+        target: "#controls-section",
+        title: "✍️ Interactive Transaction Controls & Ledgers",
+        content: "Select sender/receiver, input amount & PIN, then click <strong>Sign & Inject Packet</strong>. Inspect real-time user balances and settled database records."
     },
     {
-        target: ".canvas-container",
-        title: "🗺️ Step 3: Interactive Node Map",
-        content: "Drag phone nodes on the map to change physical positions. Drag nodes carrying packets towards the 4G Tower (Gateway Bridge) to establish active internet uplink!"
-    },
-    {
-        target: "#ledgers-card",
-        title: "🏦 Step 4: Gateway Ingestion & Database Ledgers",
-        content: "Click <strong>Flush Gateway Uplink</strong>. The server verifies AES-GCM tags, checks Redis atomic <code>SET-NX</code> locks & PostgreSQL <code>UNIQUE</code> constraints for idempotency, reconciles balances, and executes atomic settlement!"
+        target: "#logs-section",
+        title: "📜 System Audit Logs",
+        content: "Inspect real-time telemetry log events, cryptographic packet digests, and server ingestion states."
     }
 ];
 
@@ -1282,16 +957,16 @@ function showTourStep(index) {
             const rect = targetEl.getBoundingClientRect();
             const cardRect = card.getBoundingClientRect();
             
-            let top = rect.bottom + window.scrollY + 12;
+            let top = rect.bottom + window.scrollY + 16;
             let left = rect.left + window.scrollX;
             
-            if (left + 380 > window.innerWidth) {
-                left = window.innerWidth - 390;
+            if (left + 400 > window.innerWidth) {
+                left = window.innerWidth - 410;
             }
             if (left < 10) left = 10;
             
             if (top + cardRect.height > document.documentElement.scrollHeight) {
-                top = rect.top + window.scrollY - cardRect.height - 12;
+                top = rect.top + window.scrollY - cardRect.height - 16;
             }
             
             card.style.transform = 'none';

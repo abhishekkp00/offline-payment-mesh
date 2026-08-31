@@ -77,14 +77,15 @@ public class BridgeIngestionService {
                 return IngestResult.invalid("?", "unauthorized_bridge: " + e.getMessage());
             }
 
-            // 1. Key ID / Algorithm Fast-Path Validation
+            // 1. Packet Size & Key ID Fast-Path Validation
             try {
+                crypto.validatePacketSize(packet.getCiphertext());
                 crypto.validateKeyId(packet.getKeyId());
             } catch (Exception e) {
-                log.warn("Key ID validation failed for packet {}: {}", packet.getPacketId(), e.getMessage());
-                auditLogger.recordEvent("INVALID", packet.getPacketId(), "unsupported_key_id");
+                log.warn("Fast-path validation failed for packet {}: {}", packet.getPacketId(), e.getMessage());
+                auditLogger.recordEvent("INVALID", packet.getPacketId(), e.getMessage());
                 meshMetrics.incrementPaymentsRejected();
-                return IngestResult.invalid("?", "unsupported_key_id: " + e.getMessage());
+                return IngestResult.invalid("?", e.getMessage());
             }
 
             String packetHash = crypto.hashCiphertext(packet.getCiphertext());
