@@ -1,5 +1,6 @@
 package com.demo.upimesh.controller;
 
+import com.demo.upimesh.benchmark.BenchmarkRunner;
 import com.demo.upimesh.bridge.BridgeIngestionService;
 import com.demo.upimesh.crypto.ServerKeyHolder;
 import com.demo.upimesh.dtn.MeshPacket;
@@ -36,6 +37,7 @@ public class ApiController {
     @Autowired private IdempotencyService idempotency;
     @Autowired private WalletService walletService;
     @Autowired private AuditLogger auditLogger;
+    @Autowired private BenchmarkRunner benchmarkRunner;
 
     // ------------------------------------------------------------------ key
 
@@ -206,5 +208,19 @@ public class ApiController {
     @GetMapping("/transactions")
     public List<Transaction> listTransactions() {
         return txRepo.findTop20ByOrderByIdDesc();
+    }
+
+    // ------------------------------------------------------------- benchmark
+
+    @PostMapping("/benchmark/run")
+    public ResponseEntity<BenchmarkRunner.BenchmarkResult> runBenchmark(@RequestBody BenchmarkRunner.BenchmarkRequest request) {
+        BenchmarkRunner.BenchmarkResult result = benchmarkRunner.runBenchmark(request);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/benchmark/adversarial")
+    public ResponseEntity<BenchmarkRunner.AdversarialReport> runAdversarialSuite() {
+        BenchmarkRunner.AdversarialReport report = benchmarkRunner.runAdversarialSuite();
+        return ResponseEntity.ok(report);
     }
 }

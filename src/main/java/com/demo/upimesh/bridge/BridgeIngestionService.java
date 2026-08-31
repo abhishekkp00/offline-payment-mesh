@@ -4,16 +4,20 @@ import com.demo.upimesh.crypto.HybridCryptoService;
 import com.demo.upimesh.dtn.MeshPacket;
 import com.demo.upimesh.idempotency.IdempotencyService;
 import com.demo.upimesh.observability.AuditLogger;
+import com.demo.upimesh.observability.MdcUtil;
+import com.demo.upimesh.observability.MeshMetrics;
 import com.demo.upimesh.persistence.Transaction;
 import com.demo.upimesh.persistence.TransactionRepository;
 import com.demo.upimesh.protocol.PaymentInstruction;
 import com.demo.upimesh.protocol.TransactionState;
+import com.demo.upimesh.protocol.exception.CryptographicValidationException;
 import com.demo.upimesh.protocol.exception.StalePacketException;
 import com.demo.upimesh.reconciliation.DoubleSpendReconciliationService;
 import com.demo.upimesh.reconciliation.ReconciliationPolicy;
 import com.demo.upimesh.security.BridgeTrustService;
 import com.demo.upimesh.security.SecurityValidationService;
 import com.demo.upimesh.settlement.SettlementService;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,12 +43,27 @@ public class BridgeIngestionService {
     @Autowired private AuditLogger auditLogger;
     @Autowired private BridgeTrustService bridgeTrustService;
     @Autowired private DoubleSpendReconciliationService reconciliationService;
+    @Autowired private MeshMetrics meshMetrics;
 
     public IngestResult ingest(MeshPacket packet, String bridgeNodeId, int hopCount) {
+        long startTimeMs = System.currentTimeMillis();
         try {
             if (packet == null) {
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid("?", "null_packet");
             }
+
+            meshMetrics.incrementPaymentsReceived();
+            meshMetrics.incrementBridgeLoad(bridgeNodeId);
+
+            MdcUtil.setContext(
+                    packet.getTransactionId(),
+                    packet.getPacketId(),
+                    packet.getWalletId(),
+                    bridgeNodeId,
+                    "unknown",
+                    "RECEIVED"
+            );
 
             auditLogger.recordEvent("INGESTED", packet.getPacketId(), "bridge=" + bridgeNodeId);
 
@@ -54,6 +73,7 @@ public class BridgeIngestionService {
             } catch (Exception e) {
                 log.warn("Unauthorized or revoked bridge node upload attempted: {} ({})", bridgeNodeId, e.getMessage());
                 auditLogger.recordEvent("UNAUTHORIZED_BRIDGE", packet.getPacketId(), "bridge=" + bridgeNodeId);
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid("?", "unauthorized_bridge: " + e.getMessage());
             }
 
@@ -63,6 +83,7 @@ public class BridgeIngestionService {
             } catch (Exception e) {
                 log.warn("Key ID validation failed for packet {}: {}", packet.getPacketId(), e.getMessage());
                 auditLogger.recordEvent("INVALID", packet.getPacketId(), "unsupported_key_id");
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid("?", "unsupported_key_id: " + e.getMessage());
             }
 
@@ -71,6 +92,7 @@ public class BridgeIngestionService {
             // 2. Layer 1: Distributed Atomic Idempotency Claim (Redis SET-NX)
             IdempotencyService.ClaimResult claim = idempotency.claim(packetHash);
             if (claim == IdempotencyService.ClaimResult.DUPLICATE) {
+                meshMetrics.incrementDuplicateTransactions();
                 Optional<Transaction> existing = idempotency.getExistingTransaction(packetHash);
                 if (existing.isPresent()) {
                     Transaction tx = existing.get();
@@ -93,8 +115,8 @@ public class BridgeIngestionService {
             try {
                 tx = transactions.save(tx);
             } catch (DataIntegrityViolationException e) {
-                // DB UNIQUE constraint caught race condition
                 log.warn("DB Unique Constraint caught concurrent ingestion race for {}", packetHash);
+                meshMetrics.incrementDuplicateTransactions();
                 idempotency.markState(packetHash, TransactionState.DUPLICATE);
                 Optional<Transaction> existing = transactions.findByPacketHash(packetHash);
                 return existing.map(value -> IngestResult.duplicate(packetHash, value))
@@ -106,6 +128,16 @@ public class BridgeIngestionService {
             try {
                 byte[] aadBytes = packet.getCanonicalAad();
                 instruction = crypto.decrypt(packet.getCiphertext(), aadBytes);
+                if (instruction != null && instruction.getWalletAuthorization() != null) {
+                    MdcUtil.setContext(
+                            instruction.getTransactionId(),
+                            packet.getPacketId(),
+                            instruction.getWalletAuthorization().getWalletId(),
+                            bridgeNodeId,
+                            instruction.getWalletAuthorization().getDeviceId(),
+                            "DECRYPTED"
+                    );
+                }
             } catch (Exception e) {
                 log.warn("Decryption / AAD verification failed for packet {}: {}",
                         packetHash.substring(0, Math.min(12, packetHash.length())), e.getMessage());
@@ -114,6 +146,7 @@ public class BridgeIngestionService {
                 transactions.save(tx);
                 idempotency.markState(packetHash, TransactionState.FAILED_PERMANENT);
                 auditLogger.recordEvent("INVALID", packetHash, "decryption_or_aad_failed");
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid(packetHash, "decryption_or_aad_failed: " + e.getMessage());
             }
 
@@ -128,7 +161,20 @@ public class BridgeIngestionService {
                 transactions.save(tx);
                 idempotency.markState(packetHash, TransactionState.EXPIRED);
                 auditLogger.recordEvent("EXPIRED", packetHash, e.getMessage());
+                meshMetrics.incrementExpiredWallets();
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid(packetHash, "EXPIRED: " + e.getMessage());
+            } catch (CryptographicValidationException e) {
+                log.warn("Security signature validation failed for packet {}: {}",
+                        packetHash.substring(0, Math.min(12, packetHash.length())), e.getMessage());
+                tx.setState(TransactionState.REJECTED);
+                tx.setFailureReason(e.getMessage());
+                transactions.save(tx);
+                idempotency.markState(packetHash, TransactionState.REJECTED);
+                auditLogger.recordEvent("REJECTED", packetHash, e.getMessage());
+                meshMetrics.incrementForgedSignatures();
+                meshMetrics.incrementPaymentsRejected();
+                return IngestResult.invalid(packetHash, e.getMessage());
             } catch (Exception e) {
                 log.warn("Validation failed for packet {}: {}",
                         packetHash.substring(0, Math.min(12, packetHash.length())), e.getMessage());
@@ -137,6 +183,7 @@ public class BridgeIngestionService {
                 transactions.save(tx);
                 idempotency.markState(packetHash, TransactionState.REJECTED);
                 auditLogger.recordEvent("REJECTED", packetHash, e.getMessage());
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid(packetHash, e.getMessage());
             }
 
@@ -155,6 +202,12 @@ public class BridgeIngestionService {
                 tx.setFailureReason(reconciliation.reason());
                 transactions.save(tx);
                 idempotency.markState(packetHash, reconciliation.targetState());
+
+                if (reconciliation.targetState() == TransactionState.CONFLICTED) {
+                    meshMetrics.incrementConflictingSpends();
+                }
+                meshMetrics.incrementWalletReconciliationFailures();
+                meshMetrics.incrementPaymentsRejected();
                 return IngestResult.invalid(packetHash, reconciliation.reason());
             }
 
@@ -162,12 +215,18 @@ public class BridgeIngestionService {
             Transaction settledTx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
             idempotency.markState(packetHash, TransactionState.SETTLED);
 
+            meshMetrics.incrementPaymentsSettled();
+            meshMetrics.getSettlementLatencyTimer().record(System.currentTimeMillis() - startTimeMs, java.util.concurrent.TimeUnit.MILLISECONDS);
+
             return IngestResult.settled(packetHash, settledTx);
 
         } catch (Exception e) {
             log.error("Ingestion error: {}", e.getMessage(), e);
             auditLogger.recordEvent("INVALID", "?", "internal_error: " + e.getMessage());
+            meshMetrics.incrementPaymentsRejected();
             return IngestResult.invalid("?", "internal_error: " + e.getMessage());
+        } finally {
+            MdcUtil.clear();
         }
     }
 
