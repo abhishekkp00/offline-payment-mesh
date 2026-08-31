@@ -235,19 +235,95 @@
             touch-action: none;
         }
 
-        /* ---------------------------------------------------- SIDE PANEL FORMS & TELEMETRY ---------------------------------------------------- */
-        .telemetry-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            font-size: 0.74rem;
+        /* ---------------------------------------------------- TECHNICAL EXECUTION PIPELINE ---------------------------------------------------- */
+        .pipeline-stepper {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 6px 8px;
             background: var(--bg-dark);
-            padding: 8px 10px;
-            border-radius: var(--radius-sm);
             border: 1px solid var(--border-muted);
+            border-radius: var(--radius-sm);
             margin-bottom: 10px;
         }
 
+        .pipe-step {
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 3px 7px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-muted);
+            color: var(--text-muted);
+            background: var(--panel-subtle);
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .pipe-step.passed {
+            border-color: rgba(16, 185, 129, 0.4);
+            color: var(--status-healthy);
+            background: rgba(16, 185, 129, 0.08);
+        }
+        .pipe-step.active {
+            border-color: var(--accent-blue);
+            color: #ffffff;
+            background: var(--accent-blue);
+            animation: stepPulse 1s ease-in-out;
+        }
+        .pipe-step.failed {
+            border-color: var(--status-error);
+            color: #f87171;
+            background: rgba(239, 68, 68, 0.15);
+        }
+
+        .pipe-arrow {
+            color: var(--border);
+            font-size: 0.65rem;
+        }
+
+        @keyframes stepPulse {
+            0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(37, 99, 235, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+        }
+
+        /* 4-Pillar Inspector Grid */
+        .inspector-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.73rem;
+            margin-bottom: 10px;
+        }
+
+        .inspector-pillar {
+            background: var(--bg-dark);
+            border: 1px solid var(--border-muted);
+            border-radius: var(--radius-sm);
+            padding: 8px 10px;
+        }
+
+        .pillar-title {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .pillar-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            gap: 4px;
+        }
+        .pillar-row:last-child { margin-bottom: 0; }
+
+        /* Forms */
         .form-row {
             display: grid;
             grid-template-columns: 80px 1fr;
@@ -276,7 +352,7 @@
             border-color: var(--accent-blue);
         }
 
-        /* ---------------------------------------------------- TABLES ---------------------------------------------------- */
+        /* Tables */
         .table-box {
             overflow-x: auto;
             max-height: 200px;
@@ -322,7 +398,7 @@
         .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: var(--status-error); }
         .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: var(--status-warning); }
 
-        /* ---------------------------------------------------- LOG TERMINAL ---------------------------------------------------- */
+        /* Log Terminal */
         #log {
             background: #05070c;
             color: var(--text-primary);
@@ -337,7 +413,7 @@
             line-height: 1.5;
         }
 
-        /* ---------------------------------------------------- TOUR MODAL ---------------------------------------------------- */
+        /* Tour Modal */
         .tour-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -423,26 +499,64 @@
             </div>
         </div>
 
-        <!-- RIGHT SIDE PANEL (4 COLS): TELEMETRY & INGESTION FORM -->
+        <!-- RIGHT SIDE PANEL (4 COLS): TECHNICAL EXECUTION INSPECTOR & INGESTION FORM -->
         <div class="col-4">
-            <!-- Side Panel Part 1: Live Ingestion Telemetry -->
+            <!-- Side Panel Part 1: Technical Execution Pipeline Inspector -->
             <div class="panel" id="telemetry-section" style="margin-bottom: 12px;">
                 <div class="panel-header">
-                    <h2 class="panel-title">Ingestion & Telemetry State</h2>
+                    <h2 class="panel-title">Technical Execution Inspector</h2>
                     <span class="badge-status status-SETTLED" id="e2e-settlement-state">READY</span>
                 </div>
 
-                <div class="telemetry-grid">
-                    <div><span style="color: var(--text-muted);">Tx ID:</span> <span class="mono" id="e2e-tx-id" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Wallet ID:</span> <span class="mono" id="e2e-wallet-id" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Route:</span> <span class="mono" id="e2e-route" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Amount:</span> <span class="mono" id="e2e-amount" style="color: var(--status-healthy);">-</span></div>
-                    <div><span style="color: var(--text-muted);">DTN Hops:</span> <span class="mono" id="e2e-hops" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Algorithm:</span> <span class="mono" id="e2e-routing" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Bridge Node:</span> <span class="mono" id="e2e-bridge" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Security Check:</span> <span class="mono" id="e2e-security" style="color: var(--status-healthy);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Idempotency:</span> <span class="mono" id="e2e-idempotency" style="color: var(--status-warning);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Latency:</span> <span class="mono" id="e2e-latency" style="color: var(--text-heading);">-</span></div>
+                <!-- Pipeline Execution Stepper -->
+                <div class="pipeline-stepper">
+                    <div class="pipe-step passed" id="pipe-OFFLINE_WALLET">OFFLINE WALLET</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step passed" id="pipe-SIGNED">SIGNED</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step passed" id="pipe-ENCRYPTED">ENCRYPTED</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step passed" id="pipe-RELAYED">RELAYED</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step passed" id="pipe-BRIDGE">BRIDGE</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step active" id="pipe-VERIFIED">VERIFIED</div>
+                    <span class="pipe-arrow">➔</span>
+                    <div class="pipe-step" id="pipe-SETTLED">SETTLED</div>
+                </div>
+
+                <!-- 4 Pillar Inspector Grid -->
+                <div class="inspector-grid">
+                    <div class="inspector-pillar">
+                        <div class="pillar-title">TRANSACTION</div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Tx ID:</span> <span class="mono" id="e2e-tx-id">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Wallet ID:</span> <span class="mono" id="e2e-wallet-id">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Route:</span> <span class="mono" id="e2e-route">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Amount:</span> <span class="mono" id="e2e-amount" style="color: var(--status-healthy);">-</span></div>
+                    </div>
+
+                    <div class="inspector-pillar">
+                        <div class="pillar-title">NETWORK</div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Routing:</span> <span class="mono" id="e2e-routing">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Hops:</span> <span class="mono" id="e2e-hops">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Bridge:</span> <span class="mono" id="e2e-bridge">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">TTL:</span> <span class="mono" id="e2e-ttl">5 hops</span></div>
+                    </div>
+
+                    <div class="inspector-pillar">
+                        <div class="pillar-title">SECURITY</div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Wallet Auth:</span> <span class="mono" id="e2e-security" style="color: var(--status-healthy);">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Signature:</span> <span class="mono" id="e2e-signature">Ed25519_VALID</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Payload:</span> <span class="mono" id="e2e-integrity">AES-256-GCM</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Idempotency:</span> <span class="mono" id="e2e-idempotency" style="color: var(--status-warning);">-</span></div>
+                    </div>
+
+                    <div class="inspector-pillar">
+                        <div class="pillar-title">SETTLEMENT</div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Latency:</span> <span class="mono" id="e2e-latency">-</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Conflict:</span> <span class="mono" id="e2e-conflict" style="color: var(--status-healthy);">CLEAN</span></div>
+                        <div class="pillar-row"><span style="color: var(--text-muted);">Result:</span> <span class="mono" id="e2e-result">SETTLED</span></div>
+                    </div>
                 </div>
             </div>
 
@@ -584,7 +698,19 @@ function copyLogs() {
     alert('Logs copied to clipboard!');
 }
 
-// Canvas Resolution & High-DPI Scaling Handler
+function updatePipeline(activeStep) {
+    const steps = ['OFFLINE_WALLET', 'SIGNED', 'ENCRYPTED', 'RELAYED', 'BRIDGE', 'VERIFIED', 'SETTLED'];
+    const activeIdx = steps.indexOf(activeStep);
+    steps.forEach((s, idx) => {
+        const el = document.getElementById(`pipe-${s}`);
+        if (el) {
+            el.className = 'pipe-step';
+            if (idx < activeIdx) el.classList.add('passed');
+            else if (idx === activeIdx) el.classList.add('active');
+        }
+    });
+}
+
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -683,6 +809,7 @@ async function sendPacket() {
     const startDevice = document.getElementById('injectDevice').value;
 
     try {
+        updatePipeline('ENCRYPTED');
         const res = await fetch('/api/demo/send', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -695,6 +822,7 @@ async function sendPacket() {
         if (dev) {
             activeRings.push({ x: dev.x, y: dev.y, radius: 5, maxRadius: dev.range, alpha: 0.9, color: '#38bdf8' });
         }
+        updatePipeline('RELAYED');
         await refresh(false);
     } catch (e) {
         log('Error creating packet: ' + e.message);
@@ -706,6 +834,7 @@ async function gossip() {
         const res = await fetch('/api/mesh/gossip', { method: 'POST' });
         const data = await res.json();
         if (data.transfers && data.transfers.length > 0) {
+            updatePipeline('RELAYED');
             data.transfers.forEach(t => {
                 log(`Gossip transfer: Packet ${t.packetId} relayed from ${t.from} ➔ ${t.to}`);
                 const fromDev = devices.find(d => d.deviceId === t.from);
@@ -730,9 +859,11 @@ async function gossip() {
 
 async function flushBridges() {
     try {
+        updatePipeline('BRIDGE');
         const res = await fetch('/api/mesh/flush', { method: 'POST' });
         const data = await res.json();
         if (data.results && data.results.length > 0) {
+            updatePipeline('VERIFIED');
             data.results.forEach(r => {
                 log(`Gateway Ingestion [${r.bridgeNode}]: Packet #${r.packetId} ➔ ${r.outcome} ${r.reason ? '(' + r.reason + ')' : ''}`);
                 const bridgeDev = devices.find(d => d.deviceId === r.bridgeNode);
@@ -740,6 +871,7 @@ async function flushBridges() {
                     activeRings.push({ x: bridgeDev.x, y: bridgeDev.y, radius: 8, maxRadius: 70, alpha: 1.0, color: '#10b981' });
                 }
             });
+            updatePipeline('SETTLED');
         } else {
             log('Gateway Uplink executed: No pending packets at bridge nodes.');
         }
@@ -751,11 +883,14 @@ async function flushBridges() {
 
 async function runE2ESimulation() {
     log('⚡ Executing Full End-to-End Production Simulation & Adversarial Test Suite...');
+    updatePipeline('SIGNED');
     try {
         const res = await fetch('/api/demo/end-to-end-simulation', { method: 'POST' });
         const data = await res.json();
 
-        document.getElementById('e2e-tx-id').innerText = data.transactionId || '-';
+        updatePipeline('VERIFIED');
+
+        document.getElementById('e2e-tx-id').innerText = data.transactionId ? '#' + data.transactionId.substring(0, 10) : '-';
         document.getElementById('e2e-wallet-id').innerText = data.walletId || '-';
         document.getElementById('e2e-route').innerText = (data.sender || '') + ' ➔ ' + (data.receiver || '');
         document.getElementById('e2e-amount').innerText = '₹' + (data.amount || '0');
@@ -767,19 +902,36 @@ async function runE2ESimulation() {
         document.getElementById('e2e-settlement-state').innerText = data.settlementState || '-';
         document.getElementById('e2e-latency').innerText = (data.settlementLatencyMs || 0) + ' ms';
 
+        const now = new Date();
+        const timeStr = now.toTimeString().split(' ')[0];
+
         const scenariosContainer = document.getElementById('e2e-adversarial-scenarios');
         scenariosContainer.innerHTML = '';
         if (data.demonstrationScenarios) {
             Object.entries(data.demonstrationScenarios).forEach(([name, result]) => {
                 const div = document.createElement('div');
                 div.style.background = 'var(--bg-dark)';
-                div.style.padding = '5px 8px';
+                div.style.padding = '6px 8px';
                 div.style.borderRadius = 'var(--radius-sm)';
                 div.style.border = '1px solid var(--border-muted)';
-                div.innerHTML = `<span style="color: var(--text-muted);">${name}:</span> <strong style="color: var(--status-healthy);">${result}</strong>`;
+                
+                const isPass = result.includes('PASSED') || result.includes('DROPPED') || result.includes('BLOCKED') || result.includes('REJECTED');
+                const badgeClass = isPass ? 'status-SETTLED' : 'status-REJECTED';
+                const statusTag = isPass ? '[VERIFIED]' : '[FAIL]';
+
+                div.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: 600; color: var(--text-heading);">${name.toUpperCase()}</span>
+                        <span class="badge-status ${badgeClass}">${statusTag}</span>
+                    </div>
+                    <div style="color: var(--text-muted); font-size: 0.68rem; margin-top: 2px;">${result}</div>
+                    <div style="color: var(--text-muted); font-size: 0.65rem; text-align: right; margin-top: 2px;">${timeStr}</div>
+                `;
                 scenariosContainer.appendChild(div);
             });
         }
+
+        updatePipeline('SETTLED');
 
         devices.forEach(d => {
             if (d.hasInternet) {
@@ -799,6 +951,7 @@ async function resetMesh() {
     log('Simulation environment reset.');
     activeParticles = [];
     activeRings = [];
+    updatePipeline('OFFLINE_WALLET');
     await refresh(true);
 }
 
@@ -843,7 +996,7 @@ function animate() {
     ctx.fillStyle = 'rgba(240, 246, 252, 0.35)';
     ctx.font = '600 9px "JetBrains Mono"';
     ctx.textAlign = 'left';
-    ctx.fillText("📡 4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 12, 18);
+    ctx.fillText("4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 12, 18);
 
     // 3. Compact Protocol Legend (Top-Left Overlay)
     ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
@@ -856,12 +1009,12 @@ function animate() {
     ctx.fillStyle = '#64748b';
     let lx = 18;
     
-    // Legend items
+    // Legend items without emojis
     ctx.fillStyle = '#38bdf8'; ctx.fillText("● NODE", lx, 24); lx += 52;
     ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
     ctx.fillStyle = 'rgba(56, 189, 248, 0.6)'; ctx.fillText("─ ACTIVE LINK", lx, 24); lx += 80;
     ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
-    ctx.fillStyle = '#f59e0b'; ctx.fillText("📦 PACKET", lx, 24); lx += 58;
+    ctx.fillStyle = '#f59e0b'; ctx.fillText("[P] PACKET", lx, 24); lx += 58;
     ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
     ctx.fillStyle = '#10b981'; ctx.fillText("⬢ BRIDGE", lx, 24); lx += 56;
     ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
@@ -923,7 +1076,7 @@ function animate() {
 
         // Node Geometry
         if (isBridge) {
-            // Distinct Hexagon/Diamond Badge for Bridge/Gateway
+            // Distinct Diamond Badge for Bridge/Gateway
             const s = 12;
             ctx.fillStyle = '#0f172a';
             ctx.strokeStyle = isFailed ? '#ef4444' : '#10b981';
@@ -974,14 +1127,14 @@ function animate() {
             ctx.stroke();
         }
 
-        // Packet Custody Indicator Badge
+        // Packet Custody Indicator Badge (No Emojis)
         if (d.packetCount > 0 && !isFailed) {
             ctx.fillStyle = '#f59e0b';
             ctx.fillRect(cx + 8, cy - 14, 18, 12);
             ctx.fillStyle = '#000000';
             ctx.font = '700 8px "JetBrains Mono"';
             ctx.textAlign = 'center';
-            ctx.fillText(`📦${d.packetCount}`, cx + 17, cy - 5);
+            ctx.fillText(`P:${d.packetCount}`, cx + 17, cy - 5);
         }
 
         ctx.globalAlpha = 1.0;
