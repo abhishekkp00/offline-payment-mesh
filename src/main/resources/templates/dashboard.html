@@ -619,6 +619,38 @@
 
     <!-- Controls panel -->
     <div class="card" style="margin-bottom: 20px;">
+        <div style="margin-bottom: 20px; display: flex; gap: 12px; align-items: center; justify-content: space-between; background: #1e1e24; padding: 14px 20px; border-radius: 12px; border: 1px solid var(--card-border);">
+            <div>
+                <h4 style="margin: 0; font-size: 1rem; color: #ffffff;">⚡ End-to-End Production Scenario & Telemetry</h4>
+                <p style="margin: 2px 0 0 0; font-size: 0.8rem; color: var(--text-muted);">Runs the 3-phase flow (Online Auth -> Offline Mesh -> Server Settlement) and executes 7 failure/adversarial cases.</p>
+            </div>
+            <button class="primary" onclick="runE2ESimulation()" style="width: auto; padding: 10px 20px; font-weight: 700; white-space: nowrap; color: white;">
+                ▶ Run End-to-End Simulation
+            </button>
+        </div>
+
+        <!-- E2E Telemetry Result Container (Hidden by default) -->
+        <div id="e2e-telemetry-card" class="card" style="display: none; margin-bottom: 20px; border-color: var(--primary);">
+            <div class="card-header">
+                <h3 class="card-title" style="color: #60a5fa;">📊 End-to-End Transaction Telemetry Report</h3>
+                <span class="badge status-SETTLED" id="e2e-settlement-state">SETTLED</span>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px; background: #111113; padding: 14px; border-radius: 8px; border: 1px solid var(--card-border); font-size: 0.8rem;">
+                <div><span style="color: var(--text-muted);">Tx ID:</span> <strong id="e2e-tx-id" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Wallet ID:</span> <strong id="e2e-wallet-id" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Sender ➔ Receiver:</span> <strong id="e2e-route" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Amount:</span> <strong id="e2e-amount" style="color: var(--success);">-</strong></div>
+                <div><span style="color: var(--text-muted);">DTN Hops (Copies):</span> <strong id="e2e-hops" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Routing Algorithm:</span> <strong id="e2e-routing" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Bridge Node:</span> <strong id="e2e-bridge" style="color: #ffffff;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Security Verification:</span> <strong id="e2e-security" style="color: #34d399;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Idempotency Result:</span> <strong id="e2e-idempotency" style="color: #fbbf24;">-</strong></div>
+                <div><span style="color: var(--text-muted);">Settlement Latency:</span> <strong id="e2e-latency" style="color: #ffffff;">-</strong></div>
+            </div>
+            <h4 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #ffffff;">Adversarial Test Suite Outcomes:</h4>
+            <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 8px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;"></div>
+        </div>
+
         <div class="controls-grid">
             
             <!-- Step 1: Create/Inject Payload -->
@@ -1215,6 +1247,46 @@ async function flushBridges() {
     });
     
     await refresh(false);
+}
+
+async function runE2ESimulation() {
+    log('⚡ Executing Full End-to-End Production Simulation & Adversarial Test Suite...');
+    try {
+        const res = await fetch('/api/demo/end-to-end-simulation', { method: 'POST' });
+        const data = await res.json();
+
+        document.getElementById('e2e-telemetry-card').style.display = 'block';
+        document.getElementById('e2e-tx-id').innerText = data.transactionId || '-';
+        document.getElementById('e2e-wallet-id').innerText = data.walletId || '-';
+        document.getElementById('e2e-route').innerText = (data.sender || '') + ' ➔ ' + (data.receiver || '');
+        document.getElementById('e2e-amount').innerText = '₹' + (data.amount || '0');
+        document.getElementById('e2e-hops').innerText = (data.dtnHops || 0) + ' hops (' + (data.packetCopies || 0) + ' copies)';
+        document.getElementById('e2e-routing').innerText = data.routingAlgorithm || '-';
+        document.getElementById('e2e-bridge').innerText = data.bridgeId || '-';
+        document.getElementById('e2e-security').innerText = data.securityVerificationResult || '-';
+        document.getElementById('e2e-idempotency').innerText = data.idempotencyResult || '-';
+        document.getElementById('e2e-settlement-state').innerText = data.settlementState || '-';
+        document.getElementById('e2e-latency').innerText = (data.settlementLatencyMs || 0) + ' ms';
+
+        const scenariosContainer = document.getElementById('e2e-adversarial-scenarios');
+        scenariosContainer.innerHTML = '';
+        if (data.demonstrationScenarios) {
+            Object.entries(data.demonstrationScenarios).forEach(([name, result]) => {
+                const div = document.createElement('div');
+                div.style.background = '#18181b';
+                div.style.padding = '8px 12px';
+                div.style.borderRadius = '6px';
+                div.style.border = '1px solid #27272a';
+                div.innerHTML = `<span style="color: var(--text-muted);">${name}:</span> <strong style="color: #34d399;">${result}</strong>`;
+                scenariosContainer.appendChild(div);
+            });
+        }
+
+        log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
+        await refresh(true);
+    } catch (e) {
+        log('❌ Error running E2E Simulation: ' + e.message);
+    }
 }
 
 async function resetMesh() {

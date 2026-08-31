@@ -5,6 +5,7 @@ import com.demo.upimesh.bridge.BridgeIngestionService;
 import com.demo.upimesh.crypto.ServerKeyHolder;
 import com.demo.upimesh.dtn.MeshPacket;
 import com.demo.upimesh.idempotency.IdempotencyService;
+import com.demo.upimesh.integration.EndToEndIntegrationService;
 import com.demo.upimesh.observability.AuditLogger;
 import com.demo.upimesh.persistence.Account;
 import com.demo.upimesh.persistence.AccountRepository;
@@ -38,6 +39,7 @@ public class ApiController {
     @Autowired private WalletService walletService;
     @Autowired private AuditLogger auditLogger;
     @Autowired private BenchmarkRunner benchmarkRunner;
+    @Autowired private EndToEndIntegrationService e2eService;
 
     // ------------------------------------------------------------------ key
 
@@ -78,6 +80,14 @@ public class ApiController {
         public String pin;
         public Integer ttl;
         public String startDevice;
+    }
+
+    // -------------------------------------------------------------- end-to-end
+
+    @PostMapping("/demo/end-to-end-simulation")
+    public ResponseEntity<EndToEndIntegrationService.EndToEndTelemetryResponse> runEndToEndSimulation() {
+        var response = e2eService.executeFullScenario();
+        return ResponseEntity.ok(response);
     }
 
     // -------------------------------------------------------------- mesh sim
