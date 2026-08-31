@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
- * Audit record of every settled/processed transaction.
+ * Durable entity and audit record of every transaction through its processing lifecycle.
  */
 @Entity
 @Table(name = "transactions",
@@ -21,35 +21,57 @@ public class Transaction {
     @Column(nullable = false, unique = true, length = 64)
     private String packetHash; // SHA-256 hex of encrypted packet
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String senderVpa;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String receiverVpa;
 
-    @Column(nullable = false, precision = 19, scale = 2)
+    @Column(nullable = true, precision = 19, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false)
-    private Instant signedAt; // When the sender originally signed it (offline)
+    @Column(nullable = true)
+    private Instant signedAt; // When sender originally signed it (offline)
+
+    @Column(nullable = true)
+    private Instant settledAt; // When backend settled it
 
     @Column(nullable = false)
-    private Instant settledAt; // When the backend actually processed it
+    private String bridgeNodeId; // Delivered bridge node ID
 
     @Column(nullable = false)
-    private String bridgeNodeId; // Which mesh node finally delivered it
-
-    @Column(nullable = false)
-    private int hopCount; // How many devices it passed through
+    private int hopCount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Status status;
+    private TransactionState state = TransactionState.RECEIVED;
 
-    public enum Status { SETTLED, REJECTED, DUPLICATE_DROPPED, EXPIRED }
+    @Column(nullable = false)
+    private Instant createdAt;
+
+    @Column(nullable = false)
+    private Instant updatedAt;
+
+    @Column(nullable = true)
+    private String processingNode;
+
+    @Column(nullable = true, length = 512)
+    private String failureReason;
 
     public Transaction() {}
 
+    @PrePersist
+    public void onCreate() {
+        if (createdAt == null) createdAt = Instant.now();
+        if (updatedAt == null) updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        updatedAt = Instant.now();
+    }
+
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -77,6 +99,22 @@ public class Transaction {
     public int getHopCount() { return hopCount; }
     public void setHopCount(int hopCount) { this.hopCount = hopCount; }
 
-    public Status getStatus() { return status; }
-    public void setStatus(Status status) { this.status = status; }
+    public TransactionState getState() { return state; }
+    public void setState(TransactionState state) { this.state = state; }
+
+    // Convenience getter/setter for backwards compatibility
+    public TransactionState getStatus() { return state; }
+    public void setStatus(TransactionState state) { this.state = state; }
+
+    public Instant getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public Instant getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public String getProcessingNode() { return processingNode; }
+    public void setProcessingNode(String processingNode) { this.processingNode = processingNode; }
+
+    public String getFailureReason() { return failureReason; }
+    public void setFailureReason(String failureReason) { this.failureReason = failureReason; }
 }

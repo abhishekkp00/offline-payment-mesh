@@ -1,16 +1,21 @@
 package com.demo.upimesh.protocol;
 
 /**
- * Lifecycle states of an offline transaction payload.
+ * Processing lifecycle states of an offline transaction payload.
+ *
+ * Successful path: RECEIVED -> PROCESSING -> VALIDATED -> SETTLED
+ * Terminal/Error paths: REJECTED, EXPIRED, DUPLICATE, FAILED_RETRYABLE, FAILED_PERMANENT
  */
 public enum TransactionState {
-    CREATED,
-    SIGNED,
-    PENDING_RELAY,
-    INGESTED,
-    VERIFIED,
+    RECEIVED,
+    PROCESSING,
+    VALIDATED,
     SETTLED,
+
+    // Terminal / Error States
     REJECTED,
-    DUPLICATE_DROPPED,
-    EXPIRED
+    EXPIRED,
+    DUPLICATE,
+    FAILED_RETRYABLE,
+    FAILED_PERMANENT
 }
