@@ -9,6 +9,7 @@ import com.demo.upimesh.persistence.TransactionRepository;
 import com.demo.upimesh.protocol.PaymentInstruction;
 import com.demo.upimesh.protocol.TransactionState;
 import com.demo.upimesh.protocol.exception.StalePacketException;
+import com.demo.upimesh.security.BridgeTrustService;
 import com.demo.upimesh.security.SecurityValidationService;
 import com.demo.upimesh.settlement.SettlementService;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ public class BridgeIngestionService {
     @Autowired private SettlementService settlement;
     @Autowired private TransactionRepository transactions;
     @Autowired private AuditLogger auditLogger;
+    @Autowired private BridgeTrustService bridgeTrustService;
 
     public IngestResult ingest(MeshPacket packet, String bridgeNodeId, int hopCount) {
         try {
@@ -42,6 +44,15 @@ public class BridgeIngestionService {
             }
 
             auditLogger.recordEvent("INGESTED", packet.getPacketId(), "bridge=" + bridgeNodeId);
+
+            // 0. Bridge Identity & Trust Validation
+            try {
+                bridgeTrustService.validateBridgeTrust(bridgeNodeId);
+            } catch (Exception e) {
+                log.warn("Unauthorized or revoked bridge node upload attempted: {} ({})", bridgeNodeId, e.getMessage());
+                auditLogger.recordEvent("UNAUTHORIZED_BRIDGE", packet.getPacketId(), "bridge=" + bridgeNodeId);
+                return IngestResult.invalid("?", "unauthorized_bridge: " + e.getMessage());
+            }
 
             // 1. Key ID / Algorithm Fast-Path Validation
             try {

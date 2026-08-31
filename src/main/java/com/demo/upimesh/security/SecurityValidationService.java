@@ -1,7 +1,9 @@
 package com.demo.upimesh.security;
 
 import com.demo.upimesh.crypto.Ed25519CryptoService;
+import com.demo.upimesh.crypto.KeyLifecycleService;
 import com.demo.upimesh.crypto.ServerKeyHolder;
+import com.demo.upimesh.persistence.Device;
 import com.demo.upimesh.protocol.PaymentInstruction;
 import com.demo.upimesh.protocol.ProtocolVersion;
 import com.demo.upimesh.protocol.WalletAuthorization;
@@ -14,13 +16,15 @@ import java.security.PublicKey;
 import java.time.Instant;
 
 /**
- * Validates cryptographic signatures, wallet authorizations, timestamp freshness, and spending allowances.
+ * Validates cryptographic signatures, wallet authorizations, timestamp freshness, device trust, and spending allowances.
  */
 @Service
 public class SecurityValidationService {
 
     @Autowired private Ed25519CryptoService ed25519Service;
     @Autowired private ServerKeyHolder serverKey;
+    @Autowired private DeviceTrustService deviceTrustService;
+    @Autowired private KeyLifecycleService keyLifecycleService;
 
     @Value("${upi.mesh.packet-max-age-seconds:86400}")
     private long maxAgeSeconds;
@@ -56,6 +60,10 @@ public class SecurityValidationService {
             throw new CryptographicValidationException("Missing wallet authorization token");
         }
 
+        if (auth.getServerKeyId() != null) {
+            keyLifecycleService.validateKeyStatus(auth.getServerKeyId());
+        }
+
         boolean validServerSig = ed25519Service.verify(
                 auth.getCanonicalData(),
                 auth.getServerSignature(),
@@ -65,12 +73,17 @@ public class SecurityValidationService {
             throw new CryptographicValidationException("Invalid server authorization signature");
         }
 
-        // 4. Wallet Authorization Expiry Check
+        // 4. Device Trust & Status Check
+        if (auth.getDeviceId() != null) {
+            deviceTrustService.validateDeviceTrust(auth.getDeviceId());
+        }
+
+        // 5. Wallet Authorization Expiry Check
         if (auth.getExpiry() == null || auth.getExpiry() < instruction.getSignedAt()) {
             throw new StalePacketException("Wallet authorization expired before payment was signed");
         }
 
-        // 5. Allowance Bound Check
+        // 6. Allowance Bound Check
         if (instruction.getAmount() == null || instruction.getAmount().signum() <= 0) {
             throw new IllegalArgumentException("Invalid payment amount");
         }
@@ -79,7 +92,7 @@ public class SecurityValidationService {
                     " exceeds authorized offline allowance of ₹" + auth.getAuthorizedBalance());
         }
 
-        // 6. Device Transaction Signature Verification
+        // 7. Device Transaction Signature Verification
         if (instruction.getDeviceSignature() == null || instruction.getDeviceSignature().isBlank()) {
             throw new CryptographicValidationException("Missing device transaction signature");
         }

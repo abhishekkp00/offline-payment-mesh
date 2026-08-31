@@ -6,3 +6,11 @@ target/
 *.iml
 .vscode/
 .DS_Store
+
+# Persistent Key Security (Do NOT commit private keys or certificates)
+.keys/
+*.pem
+*.key
+*.p12
+*.jks
+*.crt
