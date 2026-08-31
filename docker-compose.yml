@@ -28,7 +28,7 @@ services:
     image: postgres:16-alpine
     container_name: upi_mesh_postgres
     ports:
-      - "5432:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     environment:
       - POSTGRES_DB=upimesh
       - POSTGRES_USER=postgres
