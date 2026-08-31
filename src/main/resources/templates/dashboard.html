@@ -30,6 +30,21 @@
             --font-mono: 'JetBrains Mono', monospace;
             --radius-sm: 4px;
             --radius-md: 6px;
+
+            /* Motion System Tokens */
+            --duration-micro: 140ms;
+            --duration-comp: 240ms;
+            --duration-state: 400ms;
+            --ease-out-quad: cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, ::before, ::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
         }
 
         * {
@@ -66,6 +81,7 @@
             margin-bottom: 12px;
             flex-wrap: wrap;
             gap: 10px;
+            transition: border-color var(--duration-comp) var(--ease-out-quad);
         }
 
         .top-bar-left {
@@ -118,6 +134,7 @@
             padding: 4px 9px;
             border-radius: var(--radius-sm);
             color: var(--text-muted);
+            transition: border-color var(--duration-micro) ease;
         }
         .info-pill strong {
             color: var(--text-heading);
@@ -129,7 +146,7 @@
             gap: 8px;
         }
 
-        /* Buttons */
+        /* Buttons & Micro-interactions */
         .btn {
             font-family: var(--font-ui);
             font-size: 0.78rem;
@@ -143,10 +160,16 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: background-color 0.15s ease, border-color 0.15s ease;
+            transition: background-color var(--duration-micro) ease,
+                        border-color var(--duration-micro) ease,
+                        transform var(--duration-micro) var(--ease-out-quad);
         }
         .btn:hover {
             background: var(--border);
+            transform: translateY(-1px);
+        }
+        .btn:active {
+            transform: translateY(1px) scale(0.98);
         }
 
         .btn-primary {
@@ -199,6 +222,7 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
+            transition: border-color var(--duration-comp) var(--ease-out-quad);
         }
 
         .panel-header {
@@ -258,7 +282,7 @@
             color: var(--text-muted);
             background: var(--panel-subtle);
             white-space: nowrap;
-            transition: all 0.2s ease;
+            transition: all var(--duration-comp) var(--ease-out-quad);
         }
         .pipe-step.passed {
             border-color: rgba(16, 185, 129, 0.4);
@@ -269,7 +293,7 @@
             border-color: var(--accent-blue);
             color: #ffffff;
             background: var(--accent-blue);
-            animation: stepPulse 1s ease-in-out;
+            animation: stepPulse var(--duration-state) var(--ease-out-quad);
         }
         .pipe-step.failed {
             border-color: var(--status-error);
@@ -347,6 +371,7 @@
             font-family: var(--font-ui);
             font-size: 0.78rem;
             outline: none;
+            transition: border-color var(--duration-micro) ease;
         }
         input:focus, select:focus {
             border-color: var(--accent-blue);
@@ -371,6 +396,7 @@
         th, td {
             padding: 6px 10px;
             border-bottom: 1px solid var(--border-muted);
+            transition: background-color var(--duration-micro) ease;
         }
 
         th {
@@ -398,7 +424,7 @@
         .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: var(--status-error); }
         .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: var(--status-warning); }
 
-        /* Log Terminal */
+        /* Log Terminal & Slide Entrance */
         #log {
             background: #05070c;
             color: var(--text-primary);
@@ -411,6 +437,47 @@
             overflow-y: auto;
             white-space: pre-wrap;
             line-height: 1.5;
+        }
+
+        .log-entry {
+            animation: logSlide var(--duration-comp) var(--ease-out-quad);
+        }
+
+        @keyframes logSlide {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Toast Notification Container */
+        .toast-container {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--panel-bg);
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-heading);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            animation: toastIn var(--duration-micro) var(--ease-out-quad);
+            transition: opacity var(--duration-micro) ease;
+        }
+        .toast-success { border-color: var(--status-healthy); }
+        .toast-warning { border-color: var(--status-warning); }
+        .toast-fade-out { opacity: 0; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Tour Modal */
@@ -653,6 +720,9 @@
 
 </div>
 
+<!-- TOAST CONTAINER FOR NON-INTRUSIVE FEEDBACK -->
+<div id="toast-container" class="toast-container"></div>
+
 <!-- ONBOARDING TOUR MODAL WITH SKIP DEMO OPTION -->
 <div id="tour-overlay" class="tour-overlay" onclick="endTour()"></div>
 <div id="tour-card" class="tour-card">
@@ -680,22 +750,42 @@ const LOGICAL_HEIGHT = 420;
 
 let devices = [];
 let draggingDevice = null;
+let hoveredDevice = null;
 let dragOffsetX = 0;
 let dragOffsetY = 0;
 let activeParticles = [];
 let activeRings = [];
 let dashOffset = 0;
 
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('toast-fade-out');
+        setTimeout(() => toast.remove(), 150);
+    }, 2200);
+}
+
 function log(msg) {
     const logDiv = document.getElementById('log');
     const timeStr = new Date().toTimeString().split(' ')[0];
-    logDiv.innerHTML = `<span style="color: var(--text-muted);">[${timeStr}]</span> <span style="color: var(--accent-blue);">➔</span> ${msg}\n` + logDiv.innerHTML;
+    const line = document.createElement('div');
+    line.className = 'log-entry';
+    line.innerHTML = `<span style="color: var(--text-muted);">[${timeStr}]</span> <span style="color: var(--accent-blue);">➔</span> ${msg}`;
+    logDiv.insertBefore(line, logDiv.firstChild);
 }
 
-function clearLogs() { document.getElementById('log').innerHTML = ''; }
+function clearLogs() {
+    document.getElementById('log').innerHTML = '';
+    showToast('Activity log cleared.', 'info');
+}
+
 function copyLogs() {
     navigator.clipboard.writeText(document.getElementById('log').innerText);
-    alert('Logs copied to clipboard!');
+    showToast('Logs copied to clipboard.', 'success');
 }
 
 function updatePipeline(activeStep) {
@@ -817,7 +907,8 @@ async function sendPacket() {
         });
         const data = await res.json();
         log(`Signed packet injected into ${startDevice}. Ciphertext: ${data.ciphertextPreview}`);
-        
+        showToast(`Packet injected into ${startDevice}`, 'success');
+
         const dev = devices.find(d => d.deviceId === startDevice);
         if (dev) {
             activeRings.push({ x: dev.x, y: dev.y, radius: 5, maxRadius: dev.range, alpha: 0.9, color: '#38bdf8' });
@@ -826,6 +917,7 @@ async function sendPacket() {
         await refresh(false);
     } catch (e) {
         log('Error creating packet: ' + e.message);
+        showToast('Failed to inject packet', 'warning');
     }
 }
 
@@ -848,8 +940,10 @@ async function gossip() {
                     activeRings.push({ x: toDev.x, y: toDev.y, radius: 4, maxRadius: toDev.range * 0.6, alpha: 0.8, color: '#f59e0b' });
                 }
             });
+            showToast(`Gossip: ${data.transfers.length} packet relays completed`, 'success');
         } else {
             log('Gossip round executed: No adjacent nodes within radio proximity.');
+            showToast('Gossip: No adjacent nodes in range', 'info');
         }
         await refresh(false);
     } catch (e) {
@@ -872,8 +966,10 @@ async function flushBridges() {
                 }
             });
             updatePipeline('SETTLED');
+            showToast(`Gateway Uplink: ${data.results.length} packets settled`, 'success');
         } else {
             log('Gateway Uplink executed: No pending packets at bridge nodes.');
+            showToast('Gateway Uplink: No pending packets at bridge', 'info');
         }
         await refresh(true);
     } catch (e) {
@@ -940,15 +1036,18 @@ async function runE2ESimulation() {
         });
 
         log('✅ End-to-End Simulation completed cleanly. Settlement State: ' + data.settlementState);
+        showToast('E2E Simulation & Adversarial Matrix Completed', 'success');
         await refresh(true);
     } catch (e) {
         log('❌ Error running E2E Simulation: ' + e.message);
+        showToast('Simulation failed', 'warning');
     }
 }
 
 async function resetMesh() {
     await fetch('/api/mesh/reset', { method: 'POST' });
     log('Simulation environment reset.');
+    showToast('Simulation reset', 'info');
     activeParticles = [];
     activeRings = [];
     updatePipeline('OFFLINE_WALLET');
@@ -980,7 +1079,7 @@ function animate() {
         ctx.stroke();
     }
 
-    // 2. 4G Cell Gateway Internet Zone (Rightmost logical x >= 750)
+    // 2. 4G Cell Gateway Internet Zone
     const gatewayX = (750 / LOGICAL_WIDTH) * cssW;
     ctx.fillStyle = 'rgba(37, 99, 235, 0.035)';
     ctx.fillRect(gatewayX, 0, cssW - gatewayX, cssH);
@@ -998,7 +1097,7 @@ function animate() {
     ctx.textAlign = 'left';
     ctx.fillText("4G CELL TOWER / INTERNET GATEWAY ZONE", gatewayX + 12, 18);
 
-    // 3. Compact Protocol Legend (Top-Left Overlay)
+    // 3. Compact Protocol Legend Overlay
     ctx.fillStyle = 'rgba(10, 14, 23, 0.85)';
     ctx.fillRect(10, 10, 390, 22);
     ctx.strokeStyle = 'rgba(38, 47, 61, 0.8)';
@@ -1009,7 +1108,6 @@ function animate() {
     ctx.fillStyle = '#64748b';
     let lx = 18;
     
-    // Legend items without emojis
     ctx.fillStyle = '#38bdf8'; ctx.fillText("● NODE", lx, 24); lx += 52;
     ctx.fillStyle = '#64748b'; ctx.fillText("│", lx, 24); lx += 10;
     ctx.fillStyle = 'rgba(56, 189, 248, 0.6)'; ctx.fillText("─ ACTIVE LINK", lx, 24); lx += 80;
@@ -1022,7 +1120,7 @@ function animate() {
 
     dashOffset = (dashOffset + 0.3) % 10;
 
-    // 4. Active Transmission Links between nearby nodes
+    // 4. Active Transmission Links
     for (let i = 0; i < devices.length; i++) {
         for (let j = i + 1; j < devices.length; j++) {
             const d1 = devices[i];
@@ -1059,12 +1157,20 @@ function animate() {
         const cy = (d.y / LOGICAL_HEIGHT) * cssH;
         const isBridge = d.hasInternet || d.deviceId.includes('bridge') || d.x >= 750;
         const isFailed = d.isFailed === true;
+        const isHovered = hoveredDevice && hoveredDevice.deviceId === d.deviceId;
 
-        if (isFailed) {
-            ctx.globalAlpha = 0.35;
+        if (isFailed) ctx.globalAlpha = 0.35;
+
+        // Hover Inspection Ring
+        if (isHovered) {
+            ctx.strokeStyle = '#38bdf8';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.stroke();
         }
 
-        // Radio Coverage Subtle Halo
+        // Radio Coverage Halo
         const rangeR = (d.range / LOGICAL_WIDTH) * cssW;
         ctx.strokeStyle = isBridge ? 'rgba(16, 185, 129, 0.18)' : 'rgba(37, 99, 235, 0.12)';
         ctx.fillStyle = isBridge ? 'rgba(16, 185, 129, 0.03)' : 'rgba(37, 99, 235, 0.02)';
@@ -1076,7 +1182,6 @@ function animate() {
 
         // Node Geometry
         if (isBridge) {
-            // Distinct Diamond Badge for Bridge/Gateway
             const s = 12;
             ctx.fillStyle = '#0f172a';
             ctx.strokeStyle = isFailed ? '#ef4444' : '#10b981';
@@ -1095,7 +1200,6 @@ function animate() {
             ctx.arc(cx, cy, 4, 0, Math.PI * 2);
             ctx.fill();
         } else {
-            // Standard Mobile Node Circle
             ctx.fillStyle = '#0f172a';
             ctx.strokeStyle = isFailed ? '#64748b' : (d.packetCount > 0 ? '#f59e0b' : '#2563eb');
             ctx.lineWidth = 2;
@@ -1114,10 +1218,9 @@ function animate() {
         ctx.fillStyle = isFailed ? '#64748b' : '#f1f5f9';
         ctx.font = '600 9px "JetBrains Mono"';
         ctx.textAlign = 'center';
-        const labelText = d.deviceId.toUpperCase();
-        ctx.fillText(labelText, cx, cy - 16);
+        ctx.fillText(d.deviceId.toUpperCase(), cx, cy - 16);
 
-        // Failed Node Marker
+        // Failed Marker
         if (isFailed) {
             ctx.strokeStyle = '#ef4444';
             ctx.lineWidth = 2;
@@ -1127,7 +1230,7 @@ function animate() {
             ctx.stroke();
         }
 
-        // Packet Custody Indicator Badge (No Emojis)
+        // Packet Custody Badge
         if (d.packetCount > 0 && !isFailed) {
             ctx.fillStyle = '#f59e0b';
             ctx.fillRect(cx + 8, cy - 14, 18, 12);
@@ -1140,7 +1243,27 @@ function animate() {
         ctx.globalAlpha = 1.0;
     });
 
-    // 6. Stateful Animation: Directional Packet Transfer Pulses
+    // 6. Node Hover Tooltip Rendering
+    if (hoveredDevice) {
+        const cx = (hoveredDevice.x / LOGICAL_WIDTH) * cssW;
+        const cy = (hoveredDevice.y / LOGICAL_HEIGHT) * cssH;
+        
+        ctx.fillStyle = 'rgba(18, 23, 33, 0.95)';
+        ctx.fillRect(cx + 16, cy - 26, 150, 48);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx + 16, cy - 26, 150, 48);
+
+        ctx.fillStyle = '#f1f5f9';
+        ctx.font = '600 9px "JetBrains Mono"';
+        ctx.textAlign = 'left';
+        ctx.fillText(`NODE: ${hoveredDevice.deviceId.toUpperCase()}`, cx + 22, cy - 12);
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(`Packets: ${hoveredDevice.packetCount || 0} buffered`, cx + 22, cy);
+        ctx.fillText(`Status: ${hoveredDevice.hasInternet ? '4G Gateway' : 'Offline Peer'}`, cx + 22, cy + 12);
+    }
+
+    // 7. Stateful Animations: Packet Transfers & Rings
     for (let i = activeParticles.length - 1; i >= 0; i--) {
         const p = activeParticles[i];
         p.progress += 0.035;
@@ -1153,7 +1276,6 @@ function animate() {
         const curX = fromX + (toX - fromX) * p.progress;
         const curY = fromY + (toY - fromY) * p.progress;
 
-        // Trail Pulse
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -1169,7 +1291,6 @@ function animate() {
         if (p.progress >= 1.0) activeParticles.splice(i, 1);
     }
 
-    // 7. Stateful Animation: Ring Expansion (Reception & Settlement Ripples)
     for (let i = activeRings.length - 1; i >= 0; i--) {
         const r = activeRings[i];
         r.radius += 1.5;
@@ -1194,7 +1315,7 @@ function animate() {
     requestAnimationFrame(animate);
 }
 
-// ---------------------------------------------------- PRECISE DRAGGING & COORDINATE SCALING ----------------------------------------------------
+// ---------------------------------------------------- PRECISE DRAGGING & HOVER INSPECTION ----------------------------------------------------
 function getCanvasPos(e) {
     const rect = canvas.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -1229,9 +1350,26 @@ function handleStart(e) {
 }
 
 function handleMove(e) {
+    const pos = getCanvasPos(e);
+    const cssW = canvas.getBoundingClientRect().width;
+    const cssH = canvas.getBoundingClientRect().height;
+
+    // Hover inspection check
+    let found = null;
+    for (let d of devices) {
+        const cx = (d.x / LOGICAL_WIDTH) * cssW;
+        const cy = (d.y / LOGICAL_HEIGHT) * cssH;
+        const dx = pos.cssX - cx;
+        const dy = pos.cssY - cy;
+        if (Math.sqrt(dx * dx + dy * dy) <= 16) {
+            found = d;
+            break;
+        }
+    }
+    hoveredDevice = found;
+
     if (draggingDevice) {
         e.preventDefault();
-        const pos = getCanvasPos(e);
         draggingDevice.x = Math.max(20, Math.min(LOGICAL_WIDTH - 20, pos.logX + dragOffsetX));
         draggingDevice.y = Math.max(20, Math.min(LOGICAL_HEIGHT - 20, pos.logY + dragOffsetY));
         draggingDevice.hasInternet = draggingDevice.x >= 750;
@@ -1252,7 +1390,7 @@ function handleEnd() {
 canvas.addEventListener('mousedown', handleStart);
 canvas.addEventListener('mousemove', handleMove);
 canvas.addEventListener('mouseup', handleEnd);
-canvas.addEventListener('mouseleave', handleEnd);
+canvas.addEventListener('mouseleave', () => { hoveredDevice = null; handleEnd(); });
 
 canvas.addEventListener('touchstart', handleStart, { passive: false });
 canvas.addEventListener('touchmove', handleMove, { passive: false });
