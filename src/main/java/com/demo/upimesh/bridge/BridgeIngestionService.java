@@ -9,6 +9,8 @@ import com.demo.upimesh.persistence.TransactionRepository;
 import com.demo.upimesh.protocol.PaymentInstruction;
 import com.demo.upimesh.protocol.TransactionState;
 import com.demo.upimesh.protocol.exception.StalePacketException;
+import com.demo.upimesh.reconciliation.DoubleSpendReconciliationService;
+import com.demo.upimesh.reconciliation.ReconciliationPolicy;
 import com.demo.upimesh.security.BridgeTrustService;
 import com.demo.upimesh.security.SecurityValidationService;
 import com.demo.upimesh.settlement.SettlementService;
@@ -22,7 +24,7 @@ import java.util.Optional;
 
 /**
  * Orchestrates server-side ingestion for DTN bundles uploaded by bridge nodes.
- * Lifecycle: RECEIVED -> PROCESSING -> VALIDATED -> SETTLED
+ * Lifecycle: RECEIVED -> PROCESSING -> VALIDATED -> RECONCILED (SETTLED / CONFLICTED / OVERSPENT)
  */
 @Service
 public class BridgeIngestionService {
@@ -36,6 +38,7 @@ public class BridgeIngestionService {
     @Autowired private TransactionRepository transactions;
     @Autowired private AuditLogger auditLogger;
     @Autowired private BridgeTrustService bridgeTrustService;
+    @Autowired private DoubleSpendReconciliationService reconciliationService;
 
     public IngestResult ingest(MeshPacket packet, String bridgeNodeId, int hopCount) {
         try {
@@ -142,7 +145,20 @@ public class BridgeIngestionService {
             tx = transactions.save(tx);
             idempotency.markState(packetHash, TransactionState.VALIDATED);
 
-            // 7. Atomic Settlement (VALIDATED -> SETTLED)
+            // 7. Offline Double-Spend & Cumulative Reconciliation Subsystem
+            DoubleSpendReconciliationService.ReconciliationResult reconciliation = reconciliationService.reconcile(
+                    instruction, packetHash, bridgeNodeId, hopCount, ReconciliationPolicy.FIRST_ARRIVED_WINS);
+
+            if (reconciliation.targetState() != TransactionState.SETTLED) {
+                log.warn("Reconciliation evaluation marked transaction {} as {}", packetHash.substring(0, 12), reconciliation.targetState());
+                tx.setState(reconciliation.targetState());
+                tx.setFailureReason(reconciliation.reason());
+                transactions.save(tx);
+                idempotency.markState(packetHash, reconciliation.targetState());
+                return IngestResult.invalid(packetHash, reconciliation.reason());
+            }
+
+            // 8. Atomic Settlement (VALIDATED -> SETTLED)
             Transaction settledTx = settlement.settle(instruction, packetHash, bridgeNodeId, hopCount);
             idempotency.markState(packetHash, TransactionState.SETTLED);
 
