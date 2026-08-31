@@ -3,29 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UPI Offline Mesh — Engineering Control Console</title>
+    <title>UPI Offline Mesh — Monitoring & Control Console</title>
     
-    <!-- Typography: Inter for clean UI, JetBrains Mono ONLY for metrics, IDs, hashes, and logs -->
+    <!-- Typography: Inter for UI, JetBrains Mono ONLY for metrics, IDs, hashes, amounts, and logs -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --bg-dark: #0d1117;
-            --panel-bg: #161b22;
-            --panel-subtle: #21262d;
-            --border: #30363d;
-            --border-muted: #21262d;
+            --bg-dark: #0b0e14;
+            --panel-bg: #121721;
+            --panel-subtle: #1a202c;
+            --border: #262f3d;
+            --border-muted: #1e2633;
             --accent-blue: #2563eb;
             --accent-blue-hover: #1d4ed8;
             --status-healthy: #10b981;
             --status-warning: #f59e0b;
             --status-error: #ef4444;
-            --text-primary: #c9d1d9;
-            --text-heading: #f0f6fc;
-            --text-muted: #8b949e;
-            --canvas-bg: #090d16;
+            --text-primary: #cbd5e1;
+            --text-heading: #f1f5f9;
+            --text-muted: #64748b;
+            --canvas-bg: #07090e;
             --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
             --radius-sm: 4px;
@@ -44,95 +44,97 @@
             padding: 0;
             background-color: var(--bg-dark);
             color: var(--text-primary);
-            line-height: 1.5;
-            font-size: 0.85rem;
+            line-height: 1.4;
+            font-size: 0.82rem;
         }
 
-        .console-container {
-            max-width: 1380px;
+        .app-wrapper {
+            max-width: 1600px;
             margin: 0 auto;
-            padding: 16px;
+            padding: 12px;
         }
 
-        /* ---------------------------------------------------- CONTROL ROOM HEADER ---------------------------------------------------- */
-        header.control-header {
+        /* ---------------------------------------------------- 1. TOP BAR ---------------------------------------------------- */
+        header.top-bar {
             background-color: var(--panel-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 12px 18px;
+            padding: 10px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .header-title-block {
+        .top-bar-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
-        .header-brand {
-            font-size: 1.1rem;
+        .brand-logo {
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text-heading);
-            letter-spacing: -0.01em;
-            margin: 0;
-        }
-
-        .header-subtitle {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin: 0;
-            padding-left: 12px;
-            border-left: 1px solid var(--border);
-        }
-
-        .header-metrics-bar {
+            letter-spacing: -0.02em;
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
+            gap: 8px;
         }
 
-        .metric-item {
-            display: flex;
+        .sys-status-tag {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: var(--panel-subtle);
-            padding: 4px 10px;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--status-healthy);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 3px 8px;
             border-radius: var(--radius-sm);
-            border: 1px solid var(--border-muted);
         }
 
-        .metric-label {
-            color: var(--text-muted);
-            font-size: 0.7rem;
-            text-transform: uppercase;
-        }
-
-        .metric-val {
-            color: var(--text-heading);
-            font-weight: 600;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
+        .status-dot {
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
             background-color: var(--status-healthy);
+        }
+
+        .top-bar-center {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: var(--font-mono);
+            font-size: 0.73rem;
+        }
+
+        .info-pill {
+            background: var(--panel-subtle);
+            border: 1px solid var(--border-muted);
+            padding: 4px 9px;
+            border-radius: var(--radius-sm);
+            color: var(--text-muted);
+        }
+        .info-pill strong {
+            color: var(--text-heading);
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         /* Buttons */
         .btn {
             font-family: var(--font-ui);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             font-weight: 600;
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             background: var(--panel-subtle);
@@ -145,7 +147,6 @@
         }
         .btn:hover {
             background: var(--border);
-            border-color: var(--text-muted);
         }
 
         .btn-primary {
@@ -155,15 +156,7 @@
         }
         .btn-primary:hover {
             background: var(--accent-blue-hover);
-            border-color: var(--accent-blue-hover);
         }
-
-        .btn-success {
-            background: #059669;
-            border-color: #059669;
-            color: #ffffff;
-        }
-        .btn-success:hover { background: #10b981; }
 
         .btn-warning {
             background: #d97706;
@@ -177,65 +170,89 @@
             border-color: rgba(239, 68, 68, 0.4);
             color: #f87171;
         }
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.3);
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.3); }
+
+        /* ---------------------------------------------------- GRID LAYOUT ---------------------------------------------------- */
+        .grid-12 {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 12px;
         }
 
-        /* Layout Grid */
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 16px;
-        }
+        .col-12 { grid-column: span 12; }
+        .col-8  { grid-column: span 12; }
+        .col-6  { grid-column: span 12; }
+        .col-4  { grid-column: span 12; }
 
         @media (min-width: 992px) {
-            .layout-grid-2 {
-                display: grid;
-                grid-template-columns: 1.1fr 0.9fr;
-                gap: 16px;
-            }
+            .col-8 { grid-column: span 8; }
+            .col-6 { grid-column: span 6; }
+            .col-4 { grid-column: span 4; }
         }
 
-        /* Panel Box (Control Room Container) */
+        /* Purposeful Section Panels */
         .panel {
             background-color: var(--panel-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius-md);
-            padding: 14px 16px;
-            margin-bottom: 16px;
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
             border-bottom: 1px solid var(--border-muted);
         }
 
         .panel-title {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: var(--text-heading);
             margin: 0;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
         }
 
-        /* Forms */
+        /* ---------------------------------------------------- MAIN CANVAS VISUALIZER ---------------------------------------------------- */
+        .canvas-container {
+            background: var(--canvas-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            position: relative;
+        }
+        canvas { display: block; width: 100%; height: 370px; }
+
+        /* ---------------------------------------------------- SIDE PANEL FORMS & TELEMETRY ---------------------------------------------------- */
+        .telemetry-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
+            font-size: 0.74rem;
+            background: var(--bg-dark);
+            padding: 8px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-muted);
+            margin-bottom: 10px;
+        }
+
         .form-row {
             display: grid;
-            grid-template-columns: 90px 1fr;
+            grid-template-columns: 80px 1fr;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
+            gap: 6px;
+            margin-bottom: 6px;
         }
 
         .form-label {
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             color: var(--text-muted);
-            font-weight: 500;
         }
 
         input, select {
@@ -243,30 +260,20 @@
             background: var(--bg-dark);
             border: 1px solid var(--border);
             border-radius: var(--radius-sm);
-            padding: 5px 8px;
+            padding: 4px 7px;
             color: var(--text-heading);
             font-family: var(--font-ui);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
             outline: none;
         }
         input:focus, select:focus {
             border-color: var(--accent-blue);
         }
 
-        /* Canvas visualizer */
-        .canvas-box {
-            background: var(--canvas-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            position: relative;
-        }
-        canvas { display: block; width: 100%; height: 360px; }
-
-        /* Tables */
+        /* ---------------------------------------------------- TABLES ---------------------------------------------------- */
         .table-box {
             overflow-x: auto;
-            max-height: 220px;
+            max-height: 200px;
             border: 1px solid var(--border-muted);
             border-radius: var(--radius-sm);
             background: var(--bg-dark);
@@ -275,12 +282,12 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.78rem;
+            font-size: 0.76rem;
             text-align: left;
         }
 
         th, td {
-            padding: 8px 12px;
+            padding: 6px 10px;
             border-bottom: 1px solid var(--border-muted);
         }
 
@@ -288,7 +295,7 @@
             background: var(--panel-subtle);
             color: var(--text-muted);
             font-weight: 600;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             text-transform: uppercase;
             position: sticky;
             top: 0;
@@ -299,9 +306,9 @@
 
         .badge-status {
             font-family: var(--font-mono);
-            font-size: 0.68rem;
+            font-size: 0.66rem;
             font-weight: 600;
-            padding: 2px 6px;
+            padding: 1px 5px;
             border-radius: 3px;
             text-transform: uppercase;
         }
@@ -309,22 +316,22 @@
         .status-REJECTED, .status-INVALID, .status-CONFLICTED { background: rgba(239, 68, 68, 0.15); color: var(--status-error); }
         .status-DUPLICATE_DROPPED { background: rgba(245, 158, 11, 0.15); color: var(--status-warning); }
 
-        /* Log Terminal */
+        /* ---------------------------------------------------- LOG TERMINAL ---------------------------------------------------- */
         #log {
-            background: #04060a;
+            background: #05070c;
             color: var(--text-primary);
-            padding: 12px;
+            padding: 10px;
             border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             font-family: var(--font-mono);
-            font-size: 0.73rem;
+            font-size: 0.72rem;
             max-height: 180px;
             overflow-y: auto;
             white-space: pre-wrap;
             line-height: 1.5;
         }
 
-        /* Tour Modal */
+        /* ---------------------------------------------------- TOUR MODAL ---------------------------------------------------- */
         .tour-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -338,8 +345,8 @@
             background: var(--panel-bg);
             border: 1px solid var(--accent-blue);
             border-radius: var(--radius-md);
-            padding: 18px;
-            width: 360px;
+            padding: 16px;
+            width: 350px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             z-index: 1001;
             display: none;
@@ -355,188 +362,193 @@
 </head>
 <body>
 
-<div class="console-container">
+<div class="app-wrapper">
 
-    <!-- CONTROL ROOM HEADER -->
-    <header class="control-header" id="console-header">
-        <div class="header-title-block">
-            <h1 class="header-brand">UPI OFFLINE MESH</h1>
-            <p class="header-subtitle">Engineering Simulation & Settlement Console v1.0.0</p>
+    <!-- 1. TOP BAR CONTROL STATION -->
+    <header class="top-bar" id="console-header">
+        <div class="top-bar-left">
+            <span class="brand-logo">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent-blue);"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                UPI OFFLINE MESH
+            </span>
+            <span class="sys-status-tag"><span class="status-dot"></span> GATEWAY ONLINE</span>
         </div>
 
-        <div class="header-metrics-bar">
-            <div class="metric-item">
-                <span class="status-indicator"></span>
-                <span class="metric-label">Gateway:</span>
-                <span class="metric-val">ONLINE</span>
-            </div>
-            <div class="metric-item">
-                <span class="metric-label">Active Nodes:</span>
-                <span class="metric-val" id="stat-nodes-count">-</span>
-            </div>
-            <div class="metric-item">
-                <span class="metric-label">Settled:</span>
-                <span class="metric-val" id="stat-settled-count">-</span>
-            </div>
-            <div class="metric-item">
-                <span class="metric-label">Redis Locks:</span>
-                <span class="metric-val" id="stat-cache-count">-</span>
-            </div>
+        <div class="top-bar-center">
+            <div class="info-pill">DB: <strong>PostgreSQL 16</strong></div>
+            <div class="info-pill">Cache: <strong>Redis 7</strong></div>
+            <div class="info-pill">DTN Routing: <strong>SPRAY_AND_WAIT (L=5)</strong></div>
+            <div class="info-pill">Nodes: <strong class="mono" id="stat-nodes-count">-</strong></div>
+            <div class="info-pill">Settled Tx: <strong class="mono" id="stat-settled-count">-</strong></div>
+            <div class="info-pill">Locks: <strong class="mono" id="stat-cache-count">-</strong></div>
+        </div>
+
+        <div class="top-bar-right">
             <button class="btn btn-primary" onclick="runE2ESimulation()">▶ Run E2E Simulation</button>
             <button class="btn" onclick="startTour()">Guided Tour</button>
             <button class="btn btn-danger" onclick="resetMesh()">Reset</button>
         </div>
     </header>
 
-    <!-- MAIN TWO-COLUMN ENGINEERING GRID -->
-    <div class="layout-grid-2">
+    <!-- 2. MAIN DASHBOARD ROW 1: MESH VISUALIZER (LEFT 8 COLS) + SIDE CONTROL PANEL (RIGHT 4 COLS) -->
+    <div class="grid-12" style="margin-bottom: 12px;">
         
-        <!-- LEFT COLUMN: Canvas Visualizer & Manual Controls -->
-        <div>
-            <!-- Panel 1: Canvas Visualizer -->
-            <div class="panel" id="mesh-visualizer">
+        <!-- LEFT MAIN AREA (8 COLS): DTN MESH NETWORK VISUALIZER -->
+        <div class="col-8">
+            <div class="panel" id="mesh-visualizer" style="height: 100%;">
                 <div class="panel-header">
-                    <h2 class="panel-title">DTN Mesh Physical Topology Map</h2>
-                    <span style="font-size: 0.72rem; color: var(--text-muted);">Drag nodes to sync radio range</span>
+                    <h2 class="panel-title">DTN Mesh Physical Topology & Radio Coverage Map</h2>
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">Drag nodes to test proximity & 4G gateway uplink</span>
                 </div>
-                <div class="canvas-box">
-                    <canvas id="meshCanvas" width="700" height="360"></canvas>
+                
+                <div class="canvas-container">
+                    <canvas id="meshCanvas" width="800" height="370"></canvas>
                 </div>
-            </div>
 
-            <!-- Panel 2: Manual Packet Injector & Hop Operations -->
-            <div class="panel" id="controls-section">
-                <div class="panel-header">
-                    <h2 class="panel-title">Manual Transaction Ingestion & Hop Operations</h2>
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                    <div>
-                        <div class="form-row">
-                            <span class="form-label">Sender:</span>
-                            <select id="senderVpa"><option>alice@demo</option><option>bob@demo</option><option>carol@demo</option></select>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">Recipient:</span>
-                            <select id="receiverVpa"><option>bob@demo</option><option>carol@demo</option><option>alice@demo</option><option>dave@demo</option></select>
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">Amount:</span>
-                            <input type="number" id="amount" value="250" class="mono">
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">PIN:</span>
-                            <input type="password" id="pin" value="1234" maxlength="4" class="mono">
-                        </div>
-                        <div class="form-row">
-                            <span class="form-label">Start Node:</span>
-                            <select id="injectDevice"></select>
-                        </div>
-                        <button class="btn btn-success" onclick="sendPacket()" style="width: 100%; margin-top: 6px;">Sign & Inject Packet</button>
+                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--border-muted);">
+                    <div style="font-size: 0.72rem; color: var(--text-muted);">
+                        <span>● Blue: Offline Relay</span> &nbsp;|&nbsp;
+                        <span style="color: var(--status-warning);">● Amber: Held Packets</span> &nbsp;|&nbsp;
+                        <span style="color: var(--status-healthy);">● Green: Gateway Cell</span>
                     </div>
-
-                    <div style="display: flex; flex-direction: column; justify-content: space-between;">
-                        <div>
-                            <span style="font-weight: 600; font-size: 0.78rem; color: var(--text-heading);">Gossip Hop Execution</span>
-                            <p style="font-size: 0.73rem; color: var(--text-muted); margin: 4px 0 10px 0;">Triggers store-carry-forward packet replication between adjacent nodes within radio coverage.</p>
-                            <button class="btn btn-warning" onclick="gossip()" style="width: 100%;">Execute Gossip Round</button>
-                        </div>
-                        <div>
-                            <span style="font-weight: 600; font-size: 0.78rem; color: var(--text-heading);">Gateway Uplink Ingestion</span>
-                            <p style="font-size: 0.73rem; color: var(--text-muted); margin: 4px 0 10px 0;">Prompts 4G Gateway bridge nodes to upload packets for idempotency check & settlement.</p>
-                            <button class="btn btn-primary" onclick="flushBridges()" style="width: 100%;">Flush Gateway Uplink</button>
-                        </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-warning" onclick="gossip()">Execute Gossip Round</button>
+                        <button class="btn btn-primary" onclick="flushBridges()">Flush Gateway Uplink</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- RIGHT COLUMN: Telemetry & Database Ledgers -->
-        <div>
-            <!-- Panel 3: E2E Telemetry & Adversarial Report -->
-            <div class="panel" id="telemetry-section">
+        <!-- RIGHT SIDE PANEL (4 COLS): TELEMETRY & INGESTION FORM -->
+        <div class="col-4">
+            <!-- Side Panel Part 1: Live Ingestion Telemetry -->
+            <div class="panel" id="telemetry-section" style="margin-bottom: 12px;">
                 <div class="panel-header">
-                    <h2 class="panel-title">Ingestion & Adversarial Telemetry</h2>
+                    <h2 class="panel-title">Ingestion & Telemetry State</h2>
                     <span class="badge-status status-SETTLED" id="e2e-settlement-state">READY</span>
                 </div>
 
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.75rem; background: var(--bg-dark); padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border-muted); margin-bottom: 12px;">
+                <div class="telemetry-grid">
                     <div><span style="color: var(--text-muted);">Tx ID:</span> <span class="mono" id="e2e-tx-id" style="color: var(--text-heading);">-</span></div>
                     <div><span style="color: var(--text-muted);">Wallet ID:</span> <span class="mono" id="e2e-wallet-id" style="color: var(--text-heading);">-</span></div>
                     <div><span style="color: var(--text-muted);">Route:</span> <span class="mono" id="e2e-route" style="color: var(--text-heading);">-</span></div>
                     <div><span style="color: var(--text-muted);">Amount:</span> <span class="mono" id="e2e-amount" style="color: var(--status-healthy);">-</span></div>
                     <div><span style="color: var(--text-muted);">DTN Hops:</span> <span class="mono" id="e2e-hops" style="color: var(--text-heading);">-</span></div>
                     <div><span style="color: var(--text-muted);">Algorithm:</span> <span class="mono" id="e2e-routing" style="color: var(--text-heading);">-</span></div>
-                    <div><span style="color: var(--text-muted);">Bridge:</span> <span class="mono" id="e2e-bridge" style="color: var(--text-heading);">-</span></div>
+                    <div><span style="color: var(--text-muted);">Bridge Node:</span> <span class="mono" id="e2e-bridge" style="color: var(--text-heading);">-</span></div>
                     <div><span style="color: var(--text-muted);">Security Check:</span> <span class="mono" id="e2e-security" style="color: var(--status-healthy);">-</span></div>
                     <div><span style="color: var(--text-muted);">Idempotency:</span> <span class="mono" id="e2e-idempotency" style="color: var(--status-warning);">-</span></div>
                     <div><span style="color: var(--text-muted);">Latency:</span> <span class="mono" id="e2e-latency" style="color: var(--text-heading);">-</span></div>
                 </div>
-
-                <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-heading); display: block; margin-bottom: 6px;">Adversarial Test Matrix Outcomes:</span>
-                <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: 1fr; gap: 6px; font-size: 0.72rem;" class="mono">
-                    <div style="color: var(--text-muted); background: var(--bg-dark); padding: 8px; border-radius: var(--radius-sm);">Run E2E simulation to execute 7 adversarial tests.</div>
-                </div>
             </div>
 
-            <!-- Panel 4: Database Account Ledgers & Settled Transactions -->
-            <div class="panel" id="ledgers-card">
+            <!-- Side Panel Part 2: Manual Packet Ingestion Form -->
+            <div class="panel" id="controls-section">
                 <div class="panel-header">
-                    <h2 class="panel-title">PostgreSQL Database Ledgers</h2>
+                    <h2 class="panel-title">Offline Packet Signing & Injection</h2>
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
-                    <div>
-                        <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">User Accounts</span>
-                        <div class="table-box">
-                            <table id="accounts-table">
-                                <thead><tr><th>VPA</th><th>Name</th><th>Balance</th></tr></thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span style="font-size: 0.73rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 4px;">Settled Ledger Transactions</span>
-                        <div class="table-box">
-                            <table id="tx-table">
-                                <thead><tr><th>ID</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Status</th></tr></thead>
-                                <tbody></tbody>
-                            </table>
-                        </div>
-                    </div>
+                
+                <div class="form-row">
+                    <span class="form-label">Sender:</span>
+                    <select id="senderVpa"><option>alice@demo</option><option>bob@demo</option><option>carol@demo</option></select>
                 </div>
+                <div class="form-row">
+                    <span class="form-label">Recipient:</span>
+                    <select id="receiverVpa"><option>bob@demo</option><option>carol@demo</option><option>alice@demo</option><option>dave@demo</option></select>
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Amount:</span>
+                    <input type="number" id="amount" value="250" class="mono">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">PIN:</span>
+                    <input type="password" id="pin" value="1234" maxlength="4" class="mono">
+                </div>
+                <div class="form-row">
+                    <span class="form-label">Start Node:</span>
+                    <select id="injectDevice"></select>
+                </div>
+                <button class="btn btn-primary" onclick="sendPacket()" style="width: 100%; margin-top: 6px;">Sign & Inject Packet</button>
             </div>
         </div>
 
     </div>
 
-    <!-- PANEL 5: SYSTEM AUDIT LOG TERMINAL -->
-    <div class="panel" id="logs-section">
-        <div class="panel-header">
-            <h2 class="panel-title">System Audit Log Terminal</h2>
-            <div>
-                <button class="btn" onclick="clearLogs()" style="padding: 3px 8px; font-size: 0.7rem;">Clear</button>
-                <button class="btn" onclick="copyLogs()" style="padding: 3px 8px; font-size: 0.7rem;">Copy</button>
+    <!-- 3. SECOND ROW: DATABASE LEDGERS (ACCOUNTS & SETTLED TRANSACTIONS SIDE-BY-SIDE) -->
+    <div class="grid-12" style="margin-bottom: 12px;">
+        <div class="col-6">
+            <div class="panel" id="ledgers-card">
+                <div class="panel-header">
+                    <h2 class="panel-title">PostgreSQL Accounts & Escrow Balances</h2>
+                </div>
+                <div class="table-box">
+                    <table id="accounts-table">
+                        <thead><tr><th>VPA Address</th><th>Holder Name</th><th>Current Balance</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div id="log"></div>
+
+        <div class="col-6">
+            <div class="panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">Settled Ledger Transactions</h2>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); cursor: pointer;" onclick="window.open('/actuator/prometheus', '_blank')">Prometheus Metrics ↗</span>
+                </div>
+                <div class="table-box">
+                    <table id="tx-table">
+                        <thead><tr><th>ID</th><th>Sender</th><th>Receiver</th><th>Amount</th><th>Status</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. THIRD ROW: ADVERSARIAL TEST MATRIX & SYSTEM AUDIT CONSOLE -->
+    <div class="grid-12">
+        <div class="col-4">
+            <div class="panel" style="height: 100%;">
+                <div class="panel-header">
+                    <h2 class="panel-title">Adversarial Test Outcomes</h2>
+                </div>
+                <div id="e2e-adversarial-scenarios" style="display: grid; grid-template-columns: 1fr; gap: 4px; font-size: 0.71rem;" class="mono">
+                    <div style="color: var(--text-muted); background: var(--bg-dark); padding: 6px; border-radius: var(--radius-sm);">Run E2E simulation to execute 7 adversarial tests.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-8">
+            <div class="panel" id="logs-section" style="height: 100%;">
+                <div class="panel-header">
+                    <h2 class="panel-title">System Activity Log Terminal</h2>
+                    <div>
+                        <button class="btn" onclick="clearLogs()" style="padding: 2px 7px; font-size: 0.7rem;">Clear</button>
+                        <button class="btn" onclick="copyLogs()" style="padding: 2px 7px; font-size: 0.7rem;">Copy</button>
+                    </div>
+                </div>
+                <div id="log"></div>
+            </div>
+        </div>
     </div>
 
 </div>
 
-<!-- ONBOARDING TOUR MODAL WITH SKIP OPTION -->
+<!-- ONBOARDING TOUR MODAL WITH SKIP DEMO OPTION -->
 <div id="tour-overlay" class="tour-overlay" onclick="endTour()"></div>
 <div id="tour-card" class="tour-card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h4 id="tour-title" style="margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-heading);">Step Title</h4>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <h4 id="tour-title" style="margin: 0; font-size: 0.9rem; font-weight: 700; color: var(--text-heading);">Step Title</h4>
         <button onclick="endTour()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1rem;">✕</button>
     </div>
-    <p id="tour-body" style="margin: 0 0 16px 0; font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;"></p>
-    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-muted); padding-top: 10px;">
-        <span id="tour-progress" class="mono" style="font-size: 0.72rem; color: var(--text-muted);">1 / 5</span>
+    <p id="tour-body" style="margin: 0 0 14px 0; font-size: 0.76rem; color: var(--text-muted); line-height: 1.5;"></p>
+    <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-muted); padding-top: 8px;">
+        <span id="tour-progress" class="mono" style="font-size: 0.7rem; color: var(--text-muted);">1 / 5</span>
         <div style="display: flex; gap: 6px; align-items: center;">
-            <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.72rem;" onclick="endTour()">Skip Demo</button>
-            <button id="tour-prev" class="btn" style="padding: 4px 8px; font-size: 0.72rem;" onclick="prevTourStep()">Back</button>
-            <button id="tour-next" class="btn btn-primary" style="padding: 4px 12px; font-size: 0.72rem;" onclick="nextTourStep()">Next</button>
+            <button class="btn btn-danger" style="padding: 3px 7px; font-size: 0.7rem;" onclick="endTour()">Skip Demo</button>
+            <button id="tour-prev" class="btn" style="padding: 3px 7px; font-size: 0.7rem;" onclick="prevTourStep()">Back</button>
+            <button id="tour-next" class="btn btn-primary" style="padding: 3px 10px; font-size: 0.7rem;" onclick="nextTourStep()">Next</button>
         </div>
     </div>
 </div>
@@ -736,7 +748,7 @@ async function runE2ESimulation() {
             Object.entries(data.demonstrationScenarios).forEach(([name, result]) => {
                 const div = document.createElement('div');
                 div.style.background = 'var(--bg-dark)';
-                div.style.padding = '6px 10px';
+                div.style.padding = '5px 8px';
                 div.style.borderRadius = 'var(--radius-sm)';
                 div.style.border = '1px solid var(--border-muted)';
                 div.innerHTML = `<span style="color: var(--text-muted);">${name}:</span> <strong style="color: var(--status-healthy);">${result}</strong>`;
@@ -759,7 +771,7 @@ async function resetMesh() {
     await refresh(true);
 }
 
-// Canvas Visualizer Control Room Render
+// Canvas Visualizer Render
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
@@ -779,7 +791,7 @@ function animate() {
         ctx.stroke();
     }
 
-    // 4G Gateway Zone (x >= 500 in 700px width canvas)
+    // 4G Gateway Zone (x >= 520 in 800px canvas)
     const gatewayX = canvas.width * (750 / 1152);
     ctx.fillStyle = 'rgba(37, 99, 235, 0.04)';
     ctx.fillRect(gatewayX, 0, canvas.width - gatewayX, canvas.height);
@@ -921,23 +933,23 @@ canvas.addEventListener('mouseup', () => {
 const tourSteps = [
     {
         target: "#console-header",
-        title: "UPI Offline Mesh Console",
+        title: "UPI Offline Mesh Monitoring Console",
         content: "Engineered for zero-connectivity environments. Payments are signed locally on mobile hardware and relayed over DTN peer mesh networks to gateway bridges for server settlement."
     },
     {
         target: "#mesh-visualizer",
-        title: "DTN Topology Map",
+        title: "DTN Topology & Radio Map",
         content: "Drag phone nodes to adjust physical coordinates. Position packet-holding nodes into the 4G Cell Gateway zone to simulate internet uplink availability."
+    },
+    {
+        target: "#telemetry-section",
+        title: "Live Ingestion Telemetry",
+        content: "Inspect real-time transaction state, security verification, idempotency locks, and latency metrics."
     },
     {
         target: "#controls-section",
         title: "Manual Ingestion Operations",
         content: "Select sender/receiver VPAs, input amount & PIN, and click <strong>Sign & Inject Packet</strong>. Step through wireless gossip rounds and flush gateway uplinks."
-    },
-    {
-        target: "#telemetry-section",
-        title: "Ingestion & Adversarial Telemetry",
-        content: "Click <strong>▶ Run E2E Simulation</strong> in the top header to execute the complete 3-phase lifecycle and verify 7 adversarial failure cases in real time."
     },
     {
         target: "#ledgers-card",
@@ -996,8 +1008,8 @@ function showTourStep(index) {
             let top = rect.bottom + window.scrollY + 12;
             let left = rect.left + window.scrollX;
             
-            if (left + 380 > window.innerWidth) {
-                left = window.innerWidth - 390;
+            if (left + 360 > window.innerWidth) {
+                left = window.innerWidth - 370;
             }
             if (left < 10) left = 10;
             
