@@ -449,7 +449,7 @@ Reported setup: 25 mobile nodes, 500 transactions, four gateway bridges, Spray-a
 
 ### Adversarial scenarios documented
 
-The benchmark report describes nine scenarios: duplicate upload flood, nonce replay, ciphertext bit-flip, packet metadata tampering, forged device signature, revoked bridge upload, backend restart/recovery, network partition with buffering, and conflicting offline spends. The report records expected and observed outcomes as passed for those scenarios. Re-run the test suite and benchmark on the current commit before relying on the numbers in an evaluation or external presentation.
+The benchmark report lists nine scenarios: duplicate upload flood, nonce replay, ciphertext bit-flip, packet metadata tampering, forged device signature, revoked bridge upload, backend restart/recovery, network partition with buffering, and conflicting offline spends. **Implementation caveat:** the benchmark runner actively constructs and submits packets for scenarios 1–6 and 9. Scenarios 7 and 8 are currently added to the returned report as hard-coded “Passed” strings; the runner does not itself crash/restart the backend or execute a timed 60-second partition for those entries. Separate recovery and deterministic DTN tests exist, but those two benchmark rows should not be presented as end-to-end fault-injection measurements. Re-run the test suite and benchmark on the current commit before relying on the numbers in an evaluation or external presentation.
 
 ## Observability
 
