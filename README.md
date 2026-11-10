@@ -103,7 +103,7 @@ flowchart TD
 
 The user/device is registered and an offline spending allowance is issued. The server constructs a `WalletAuthorization` containing the wallet identity, account identifier, device identity/public key, authorized amount, issuance time, expiry, nonce, and server key identifier. The server signs its canonical representation with Ed25519.
 
-The authorization is intended to represent funds reserved for offline use. A production implementation must enforce that reservation against an authoritative ledger; the current repository models this flow and seeds demo accounts rather than integrating with a real bank ledger.
+The authorization is intended to represent funds reserved for offline use. In the current code, issuing the signed authorization does **not** atomically debit or lock funds in a durable bank-side escrow ledger. The repository initializes in-memory demo wallets and seeds relational demo accounts; a production implementation must connect authorization issuance to an authoritative ledger reservation before it can claim funds are actually ring-fenced.
 
 #### 2. Offline payment creation
 
@@ -475,13 +475,15 @@ This section is deliberately explicit. Offline payments involve financial risk; 
 3. **No native mobile mesh transport.** BLE/Wi-Fi radio discovery, Android background execution, packet exchange, and device-to-device transport are simulated/abstracted, not implemented as a deployable mobile client.
 4. **Development trust and key handling.** Server keys are stored on disk by the development key holder. The trust model document describes HSM/KMS mapping, but production-grade custody, hardware attestation, certificate enrollment, rotation operations, and secure provisioning need implementation and review.
 5. **Demo identity behavior.** Demo accounts are seeded in application startup. Some trust/wallet paths are designed for simulation convenience and must be replaced with explicit enrollment and authorization in a production system.
-6. **In-memory state is not a durable distributed ledger.** Wallet state, simulator state, and the reconciliation registry include in-memory structures. A multi-instance deployment would require durable, transactionally consistent wallet reservations, nonce consumption, and reconciliation state.
-7. **Exactly-once is an application-level illusion.** Redis locking plus a database uniqueness constraint reduces duplicate effects, but correctness still depends on atomic database transactions, lock ownership/expiry handling, crash recovery, and idempotent downstream operations. It should not be advertised as a universal exactly-once delivery guarantee.
-8. **Clock assumptions.** Timestamp freshness and expiry validation depend on device/server clock quality. Client clocks can drift or be manipulated; timestamp-priority reconciliation needs stronger time assurance.
-9. **Merchant liability is unresolved.** A delayed conflicting payment can be rejected after the merchant has handed over goods/services. A real deployment needs explicit risk limits, dispute resolution, and loss-allocation rules.
-10. **No production-grade endpoint security claim.** The demo API surface, default credentials, and bridge identity headers are not a substitute for production authentication, authorization, mTLS, rate limiting, abuse controls, and secure operations.
-11. **No high availability or disaster-recovery claim.** Production failover, multi-region consistency, backups, key recovery, observability alerting, and capacity planning are outside the current demonstrated scope.
-12. **Benchmark portability.** Reported performance depends on the simulator configuration and execution environment; it does not establish real BLE throughput, battery life, radio reliability, or bank-grade transaction latency.
+6. **No durable escrow reservation at authorization time.** The current authorization issuer signs an allowance but does not atomically reserve that amount against a persistent authoritative account ledger. The demo wallet balance and authorization are not a substitute for bank-side escrow or a reconciled liability model.
+7. **PIN handling is demonstrative, not secure.** The current wallet preparation path derives a PIN-related value using Java's `String.hashCode()`. This is not a password/PIN hashing function and must not be used as a security control. Replace it with a reviewed authentication design and appropriate platform-backed secret handling before any real use.
+8. **In-memory state is not a durable distributed ledger.** Wallet state, simulator state, and the reconciliation registry include in-memory structures. A multi-instance deployment would require durable, transactionally consistent wallet reservations, nonce consumption, and reconciliation state.
+9. **Exactly-once is an application-level illusion.** Redis locking plus a database uniqueness constraint reduces duplicate effects, but correctness still depends on atomic database transactions, lock ownership/expiry handling, crash recovery, and idempotent downstream operations. It should not be advertised as a universal exactly-once delivery guarantee.
+10. **Clock assumptions.** Timestamp freshness and expiry validation depend on device/server clock quality. Client clocks can drift or be manipulated; timestamp-priority reconciliation needs stronger time assurance.
+11. **Merchant liability is unresolved.** A delayed conflicting payment can be rejected after the merchant has handed over goods/services. A real deployment needs explicit risk limits, dispute resolution, and loss-allocation rules.
+12. **No production-grade endpoint security claim.** The demo API surface, default credentials, and bridge identity headers are not a substitute for production authentication, authorization, mTLS, rate limiting, abuse controls, and secure operations.
+13. **No high availability or disaster-recovery claim.** Production failover, multi-region consistency, backups, key recovery, observability alerting, and capacity planning are outside the current demonstrated scope.
+14. **Benchmark portability.** Reported performance depends on the simulator configuration and execution environment; it does not establish real BLE throughput, battery life, radio reliability, or bank-grade transaction latency.
 
 ## Roadmap
 
