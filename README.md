@@ -538,10 +538,6 @@ Contributions are welcome, especially in mobile transport, persistent reconcilia
 
 Do not include private keys, passwords, personal information, or production credentials in commits or issue reports.
 
-## License
-
-No explicit license file was visible in the repository when this README was prepared. Until a license is added, reuse, redistribution, and contribution rights should not be assumed. Add an appropriate license file before presenting the project as open source.
-
 ---
 
 <p align="center">
