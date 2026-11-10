@@ -295,7 +295,7 @@ The Compose configuration starts:
 | PostgreSQL | `postgres:16-alpine` | Persistent relational data | Internal to Compose |
 | Redis | `redis:7-alpine` | Idempotency/cache service | `6379` |
 
-Open the application dashboard at `http://localhost:8080`.
+Open the dashboard through the application host configured for your environment (the default application port is `8080`).
 
 Useful endpoints:
 
@@ -324,7 +324,10 @@ Useful endpoints:
 Example demo request:
 
 ```bash
-curl -X POST http://localhost:8080/api/demo/send \
+# Set this to the base address where the application is reachable.
+export BASE_URL="<application-base-url>"
+
+curl -X POST "$BASE_URL/api/demo/send" \
   -H "Content-Type: application/json" \
   -d '{
     "senderVpa": "alice@demo",
@@ -375,7 +378,7 @@ The main settings are environment-variable driven:
 | `SPRING_DATASOURCE_USERNAME` | `sa` | Database username. |
 | `SPRING_DATASOURCE_PASSWORD` | Empty | Database password. |
 | `SPRING_JPA_DIALECT` | H2 dialect | Hibernate dialect. |
-| `REDIS_HOST` | `localhost` | Redis hostname. |
+| `REDIS_HOST` | Loopback host | Redis hostname for standalone development. |
 | `REDIS_PORT` | `6379` | Redis port. |
 | `REDIS_PASSWORD` | Empty | Redis password. |
 | `IDEMPOTENCY_TTL_SECONDS` | `86400` | Idempotency record TTL. |
