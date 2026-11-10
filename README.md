@@ -469,24 +469,14 @@ The application includes Actuator, Micrometer, and a Prometheus registry. Metric
 
 Prometheus scrape endpoint: `/actuator/prometheus`.
 
-## Limitations and security considerations
+## Key limitations
 
-This section is deliberately explicit. Offline payments involve financial risk; the prototype's boundaries matter as much as its features.
+This repository is a research prototype. The following four limitations define its current scope:
 
-1. **No absolute offline double-spend prevention.** Conflicting spends can be identified only after independent packets reach a common reconciliation service. The first-arrival policy can leave a later merchant unpaid.
-2. **No live banking or UPI integration.** There is no NPCI switch, issuer/acquirer integration, bank-grade settlement rail, regulatory approval, or live-money processing.
-3. **No native mobile mesh transport.** BLE/Wi-Fi radio discovery, Android background execution, packet exchange, and device-to-device transport are simulated/abstracted, not implemented as a deployable mobile client.
-4. **Development trust and key handling.** Server keys are stored on disk by the development key holder. The trust model document describes HSM/KMS mapping, but production-grade custody, hardware attestation, certificate enrollment, rotation operations, and secure provisioning need implementation and review.
-5. **Demo identity behavior.** Demo accounts are seeded in application startup. Some trust/wallet paths are designed for simulation convenience and must be replaced with explicit enrollment and authorization in a production system.
-6. **No durable escrow reservation at authorization time.** The current authorization issuer signs an allowance but does not atomically reserve that amount against a persistent authoritative account ledger. The demo wallet balance and authorization are not a substitute for bank-side escrow or a reconciled liability model.
-7. **PIN handling is demonstrative, not secure.** The current wallet preparation path derives a PIN-related value using Java's `String.hashCode()`. This is not a password/PIN hashing function and must not be used as a security control. Replace it with a reviewed authentication design and appropriate platform-backed secret handling before any real use.
-8. **In-memory state is not a durable distributed ledger.** Wallet state, simulator state, and the reconciliation registry include in-memory structures. A multi-instance deployment would require durable, transactionally consistent wallet reservations, nonce consumption, and reconciliation state.
-9. **Exactly-once is an application-level illusion.** Redis locking plus a database uniqueness constraint reduces duplicate effects, but correctness still depends on atomic database transactions, lock ownership/expiry handling, crash recovery, and idempotent downstream operations. It should not be advertised as a universal exactly-once delivery guarantee.
-10. **Clock assumptions.** Timestamp freshness and expiry validation depend on device/server clock quality. Client clocks can drift or be manipulated; timestamp-priority reconciliation needs stronger time assurance.
-11. **Merchant liability is unresolved.** A delayed conflicting payment can be rejected after the merchant has handed over goods/services. A real deployment needs explicit risk limits, dispute resolution, and loss-allocation rules.
-12. **No production-grade endpoint security claim.** The demo API surface, default credentials, and bridge identity headers are not a substitute for production authentication, authorization, mTLS, rate limiting, abuse controls, and secure operations.
-13. **No high availability or disaster-recovery claim.** Production failover, multi-region consistency, backups, key recovery, observability alerting, and capacity planning are outside the current demonstrated scope.
-14. **Benchmark portability.** Reported performance depends on the simulator configuration and execution environment; it does not establish real BLE throughput, battery life, radio reliability, or bank-grade transaction latency.
+1. **Offline double-spending cannot be fully prevented.** Two disconnected devices may accept separate payments against the same allowance. The backend detects cumulative conflicts only when packets reconnect; under the current first-arrival policy, a later merchant may not be paid.
+2. **No production banking integration or escrow reservation.** The project does not connect to UPI/NPCI, banks, or live settlement rails. Although it issues signed offline allowances, it does not yet atomically reserve those funds in a durable authoritative bank-side ledger.
+3. **Mesh transport is simulated, not deployed on phones.** The DTN layer models store-carry-forward routing, but native Android BLE/Wi-Fi discovery, device-to-device packet exchange, and mobile background execution are not implemented.
+4. **Security controls require production hardening.** The prototype uses development key storage and demonstrative PIN handling (including Java `String.hashCode()`, which is not secure PIN hashing). Production use would require reviewed authentication, managed key custody, hardware-backed device keys/attestation, secure enrollment, and independent security assessment.
 
 ## Roadmap
 
